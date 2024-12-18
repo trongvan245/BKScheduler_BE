@@ -12,3 +12,10 @@ export class AuthDto {
   @ApiProperty({ example: "123456" })
   password: string;
 }
+
+export class RefreshTokenDto {
+  @ApiProperty({ example: "your_refresh_token" })
+  @IsString()
+  @IsNotEmpty()
+  refreshToken: string;
+}
