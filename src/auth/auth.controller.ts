@@ -24,20 +24,21 @@ export class AuthController {
     return { msg: "You have login" };
   }
 
-  @Public()
-  @Get("google/login")
-  @UseGuards(GoogleAuthGuard) //use this to handle redirection
-  login() {
-    return { msg: "ok" };
-  }
+  // @Public()
+  // @Get("google/login")
+  // @UseGuards(GoogleAuthGuard) //use this to handle redirection
+  // login() {
+  //   return { msg: "ok" };
+  // }
 
   @Public()
-  @Get("google/redirect")
+  @Get("google")
   async redirect(@Query("code") code: string) {
     if (!code) {
       throw new ForbiddenException(AUTH_MESSAGES.AUTHORIZATION_CODE_REQUIRED);
     }
-    const { email, family_name, given_name, picture } = await this.authService.verifyUser(code); //This might be helpful
+    const { email, family_name, given_name, picture, hd, name, email_verified } =
+      await this.authService.verifyUser(code); //This might be helpful
 
     // const user = await this.authService.validateUser(email, family_name, given_name, picture);
 
@@ -49,14 +50,16 @@ export class AuthController {
     return {
       msg: "Success",
       data: {
+        access_token,
+        refresh_token,
+        id: 1,
         email,
+        verified_email: email_verified,
+        name,
         family_name,
         given_name,
         picture,
-        access_token,
-        refresh_token,
-        // token,
-        // user,
+        hd,
       },
     };
   }

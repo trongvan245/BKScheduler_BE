@@ -31,8 +31,8 @@ export class AuthService {
 
       const ticket = await this.oauth2Client.verifyIdToken(options);
 
-      const { email, family_name, given_name, picture } = ticket.getPayload();
-      return { email, family_name, given_name, picture };
+      const { email, family_name, given_name, picture, hd, name, email_verified } = ticket.getPayload();
+      return { email, family_name, given_name, picture, hd, name, email_verified };
     } catch (error) {
       console.log(error);
       throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
