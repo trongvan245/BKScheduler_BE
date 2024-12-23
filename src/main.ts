@@ -30,7 +30,7 @@ async function bootstrap() {
   app.enableCors({ origin: allowedOrigins, methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS", credentials: true });
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>("PORT") || 4000;
+  const port = configService.get<number>("PORT") || 5000;
   await app.listen(port);
 
   console.log(`Application is running on: ${await app.getUrl()}`);

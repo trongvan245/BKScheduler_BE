@@ -9,32 +9,42 @@ import { UpdateEventDto } from "./dto/update-event.dto";
 export class EventController {
   constructor(private readonly eventService: EventService) {}
   @Public()
+  @Get("async")
+  async asyncEvents() {
+    console.log("EventController: asyncEvents");
+    return this.eventService.syncEventsWithGoogleCalendar();
+  }
+
+  @Public()
   @Post()
   async createEvent(@Body() eventData: CreateEventDto) {
+    console.log("EventController: createEvent");
     return this.eventService.createEvent(eventData);
   }
 
   @Public()
   @Get(":id")
   async findEventById(@Param("id") eventId: string): Promise<Event | null> {
+    console.log("EventController: findEventById");
     return this.eventService.findEventById(eventId);
   }
 
   @Public()
   @Get()
   async getAllEvents() {
+    console.log("EventController: getAllEvents");
     return this.eventService.getAllEvents();
   }
 
-  // @Public()
-  // @Put(":id")
-  // async updateEvent(@Param("id") eventId: string, @Body() eventData: UpdateEventDto): Promise<Event> {
-  //   return this.eventService.updateEvent(eventId, eventData);
-  // }
+  @Public()
+  @Put(":id")
+  async updateEvent(@Param("id") eventId: string, @Body() eventData: UpdateEventDto): Promise<Event> {
+    return this.eventService.updateEvent(eventId, eventData);
+  }
 
-  // @Public()
-  // @Delete(":id")
-  // async deleteEvent(@Param("id") eventId: string): Promise<Event> {
-  //   return this.eventService.deleteEvent(eventId);
-  // }
+  @Public()
+  @Delete(":id")
+  async deleteEvent(@Param("id") eventId: string): Promise<Event> {
+    return this.eventService.deleteEvent(eventId);
+  }
 }
