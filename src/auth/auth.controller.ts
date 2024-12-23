@@ -5,11 +5,12 @@ import { GetUser, Public } from "src/common/decorators";
 import { AUTH_MESSAGES } from "src/common/constants";
 import { GoogleAuthGuard } from "./guard";
 import { JwtPayLoad } from "src/common/model";
-import { RefreshTokenDto } from "./dto";
+import { googleOneTapDto, RefreshTokenDto } from "./dto";
 import axios from "axios";
 
 @ApiTags("authenticate")
 @Controller("auth")
+@Public()
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -34,70 +35,30 @@ export class AuthController {
 
   @Public()
   @Get("google")
-  async redirect(@Query("code") code: string) {
+  async googleOauth(@Query("code") code: string) {
     if (!code) {
       throw new ForbiddenException(AUTH_MESSAGES.AUTHORIZATION_CODE_REQUIRED);
     }
 
-    try {
-      const response = await axios.get("https://www.googleapis.com/oauth2/v1/userinfo", {
-        headers: {
-          Authorization: `Bearer ${code}`,
-        },
-      });
+    const payload = await this.authService.verifyGoogleOauth(code);
 
-      const { email, family_name, given_name, picture, hd, name, email_verified } = response.data;
+    return {
+      ...payload,
+    };
+  }
 
-      const [access_token, refresh_token] = await Promise.all([
-        this.authService.signAccessToken(email),
-        this.authService.signRefreshToken(email),
-      ]);
-      return {
-        access_token,
-        refresh_token,
-        id: 1,
-        email,
-        verified_email: email_verified,
-        name,
-        family_name,
-        given_name,
-        picture,
-        hd,
-      };
-    } catch (error) {
-      // console.log(error);
-      throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
+  @Public()
+  @Post("google/one-tap")
+  async googleOneTap(@Body() { credential }: googleOneTapDto) {
+    if (!credential) {
+      throw new ForbiddenException(AUTH_MESSAGES.INVALID_ONE_TAP_CODE);
     }
-    // const { data } = await axios.post('https://oauth2.googleapis.com/token', {
-    //   code,
-    //   client_id: process.env.GOOGLE_CLIENT_ID,
-    //   client_secret: process.env.GOOGLE_CLIENT_SECRET,
-    //   redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-    //   grant_type: 'authorization_code',
-    // });
 
-    // const { email, family_name, given_name, picture, hd, name, email_verified } =
-    //   await this.authService.verifyUser(code); //This might be helpful
+    const payload = await this.authService.verifyGoogleOneTap(credential);
 
-    // // const user = await this.authService.validateUser(email, family_name, given_name, picture);
-
-    // const [access_token, refresh_token] = await Promise.all([
-    //   this.authService.signAccessToken(email),
-    //   this.authService.signRefreshToken(email),
-    // ]);
-
-    // return {
-    //   access_token,
-    //   refresh_token,
-    //   id: 1,
-    //   email,
-    //   verified_email: email_verified,
-    //   name,
-    //   family_name,
-    //   given_name,
-    //   picture,
-    //   hd,
-    // };
+    return {
+      ...payload,
+    };
   }
 
   @ApiOperation({ summary: "Renew Access Token" })
