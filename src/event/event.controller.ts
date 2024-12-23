@@ -2,11 +2,12 @@ import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common'
 import { EventService } from './event.service';
 import { Event } from '@prisma/client';
 import { CreateEventDto } from './dto/create-event.dto';
+import {  Public } from "src/common/decorators";
 
 @Controller('events')
 export class EventController {
   constructor(private readonly eventService: EventService) {}
-
+@Public()
   @Post()
   async createEvent(@Body() eventData: CreateEventDto): Promise<Event> {
     return this.eventService.createEvent(eventData);

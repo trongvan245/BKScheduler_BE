@@ -1,4 +1,5 @@
-import { IsString, IsBoolean, IsDate, IsOptional, IsInt } from 'class-validator';
+import { IsString, IsOptional, IsDate, IsBoolean, IsInt } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateEventDto {
   @IsString()
@@ -10,10 +11,12 @@ export class CreateEventDto {
 
   @IsDate()
   @IsOptional()
+  @Transform(({ value }) => (value ? new Date(value) : null), { toClassOnly: true })
   startTime?: Date;
 
   @IsDate()
   @IsOptional()
+  @Transform(({ value }) => (value ? new Date(value) : null), { toClassOnly: true })
   endTime?: Date;
 
   @IsBoolean()
