@@ -33,7 +33,7 @@ export class AuthService {
   async addUser(payload: TokenPayload) {
     const { email, family_name, given_name, picture, hd, name, email_verified } = payload;
 
-    const user = this.isEmailExist(email);
+    const user = await this.isEmailExist(email);
 
     if (user) return user;
 
@@ -150,7 +150,7 @@ export class AuthService {
       expiresIn: "15m",
     });
 
-    return access_token
+    return access_token;
   }
 
   async resignAccessToken(refresh_token: string) {
