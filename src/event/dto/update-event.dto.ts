@@ -1,9 +1,10 @@
-import { IsString, IsOptional, IsDate, IsBoolean, IsInt } from "class-validator";
-import { Transform } from "class-transformer";
+import { IsString, IsOptional, IsDate, IsBoolean, IsInt } from 'class-validator';
+import { Transform } from 'class-transformer';
 
-export class CreateEventDto {
+export class UpdateEventDto {
   @IsString()
-  name: string;
+  @IsOptional()
+  name?: string;
 
   @IsString()
   @IsOptional()

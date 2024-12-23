@@ -28,7 +28,10 @@ model Users {
   messages      Message[]
 }
 
+
+// TODO
 model Group {
+  //owner_id    String
   id          String      @id @default(uuid())
   name        String
   createTime  DateTime     @default(now())

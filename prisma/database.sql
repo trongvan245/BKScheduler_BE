@@ -1,6 +1,5 @@
 
 CREATE TABLE Users (
-    access_token VARCHAR(255),
     refresh_token VARCHAR(255),
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -18,7 +17,7 @@ CREATE TABLE "group" (
     name VARCHAR(255) NOT NULL,
     createTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     description TEXT,
-    numMember INT
+    numMember INT 
 );
 
 CREATE TABLE User_Group (
