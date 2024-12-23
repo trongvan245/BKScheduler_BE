@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
+import axios from "axios";
 import { OAuth2Client } from "google-auth-library";
 import { AUTH_MESSAGES } from "src/common/constants";
 import { JwtPayLoad } from "src/common/model";
@@ -20,24 +21,82 @@ export class AuthService {
     );
   }
 
-  async verifyUser(code: string) {
+  async verifyGoogleOneTap(credential: string) {
     try {
-      const { tokens } = await this.oauth2Client.getToken(code);
-
-      const options = {
-        idToken: tokens.id_token,
+      const ticket = await this.oauth2Client.verifyIdToken({
+        idToken: credential,
         audience: this.config.get("GOOGLE_CLIENT_ID"),
+      });
+      const payload = ticket.getPayload();
+      const { email, family_name, given_name, picture, hd, name, email_verified } = payload;
+      const [access_token, refresh_token] = await Promise.all([
+        this.signAccessToken(email),
+        this.signRefreshToken(email),
+      ]);
+      return {
+        access_token,
+        refresh_token,
+        email,
+        family_name,
+        given_name,
+        verified_email: email_verified,
+        name,
+        picture,
+        hd,
       };
-
-      const ticket = await this.oauth2Client.verifyIdToken(options);
-
-      const { email, family_name, given_name, picture, hd, name, email_verified } = ticket.getPayload();
-      return { email, family_name, given_name, picture, hd, name, email_verified };
     } catch (error) {
       console.log(error);
       throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
     }
   }
+  async verifyUser(code: string) {
+    try {
+      const response = await axios.get("https://www.googleapis.com/oauth2/v1/userinfo", {
+        headers: {
+          Authorization: `Bearer ${code}`,
+        },
+      });
+
+      const { email, family_name, given_name, picture, hd, name, email_verified } = response.data;
+
+      const [access_token, refresh_token] = await Promise.all([
+        this.signAccessToken(email),
+        this.signRefreshToken(email),
+      ]);
+      return {
+        access_token,
+        refresh_token,
+        email,
+        verified_email: email_verified,
+        name,
+        family_name,
+        given_name,
+        picture,
+        hd,
+      };
+    } catch (error) {
+      // console.log(error);
+      throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
+    }
+  }
+  // async verifyUser(code: string) {
+  //   try {
+  //     const { tokens } = await this.oauth2Client.getToken(code);
+
+  //     const options = {
+  //       idToken: tokens.id_token,
+  //       audience: this.config.get("GOOGLE_CLIENT_ID"),
+  //     };
+
+  //     const ticket = await this.oauth2Client.verifyIdToken(options);
+
+  //     const { email, family_name, given_name, picture, hd, name, email_verified } = ticket.getPayload();
+  //     return { email, family_name, given_name, picture, hd, name, email_verified };
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
+  //   }
+  // }
 
   async signRefreshToken(email: string) {
     const tokenPayload = {

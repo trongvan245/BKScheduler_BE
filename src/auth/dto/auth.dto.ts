@@ -12,6 +12,12 @@ export class AuthDto {
   @ApiProperty({ example: "123456" })
   password: string;
 }
+export class googleOneTapDto {
+  @ApiProperty({ example: "your_credential" })
+  @IsString()
+  @IsNotEmpty()
+  credential: string;
+}
 
 export class RefreshTokenDto {
   @ApiProperty({ example: "your_refresh_token" })
