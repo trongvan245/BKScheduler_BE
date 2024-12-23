@@ -1,6 +1,6 @@
 import { Body, Controller, ForbiddenException, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Public } from "src/common/decorators";
 import { AUTH_MESSAGES } from "src/common/constants";
 import { GoogleAuthGuard } from "./guard";
@@ -8,6 +8,7 @@ import { JwtPayLoad } from "src/common/model";
 import { googleOneTapDto, RefreshTokenDto } from "./dto";
 import axios from "axios";
 
+@ApiBearerAuth()
 @ApiTags("authenticate")
 @Controller("auth")
 export class AuthController {

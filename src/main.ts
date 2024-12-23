@@ -21,7 +21,6 @@ async function bootstrap() {
       // persistAuthorization: true, // Optional: Keeps the token after refreshing the page
     },
   }); //https://github.com/nestjs/swagger/issues/92 add trailing slash to the end of the url
-
   const allowedOrigins = [
     "http://localhost:5173", // Frontend service 1 (development)
     "http://localhost:3000", // Frontend service 2 (development)
