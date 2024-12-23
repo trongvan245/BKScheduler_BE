@@ -7,8 +7,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Event {
+  id          String    @id @db.VarChar(255)
+  summary     String    @db.VarChar(255)
+  description String?
+  isComplete  Boolean?
+  type        String?   @db.VarChar(50)
+  startTime   DateTime?
+  endTime     DateTime?
+  createTime  DateTime  @default(now())
+  priority    Int?
+  group_id    String?   @db.Uuid
+  Group       Group?    @relation(fields: [group_id], references: [id], onDelete: Cascade)
+}
+
+model Group {
+  id          String      @id @db.Uuid
+  name        String      @db.VarChar(255)
+  createTime  DateTime    @default(now())
+  description String?
+  numMember   Int?
+  Event       Event[]
+  UserGroup   UserGroup[]
+}
+
+model Message {
+  id         String   @id @db.Uuid
+  userId     String?  @db.Uuid
+  createTime DateTime @default(now())
+  text       String?
+  response   String?
+  textbot    String?
+  User       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model User {
-  id             String      @id @default(uuid()) @db.Uuid
+  id             String      @id @db.Uuid
   refresh_token  String?     @db.VarChar(255)
   email          String      @unique @db.VarChar(255)
   verified_email Boolean
@@ -18,49 +52,15 @@ model User {
   picture        String?     @db.VarChar(255)
   hd             String?     @db.VarChar(255)
   isSync         Boolean     @default(false)
-  messages       Message[]
-  userGroups     UserGroup[]
-}
-
-model Group {
-  id          String      @id @default(uuid()) @db.Uuid
-  name        String      @db.VarChar(255)
-  createTime  DateTime    @default(now())
-  description String?
-  numMember   Int?
-  events      Event[]
-  userGroups  UserGroup[]
+  Message        Message[]
+  UserGroup      UserGroup[]
 }
 
 model UserGroup {
-  user_id String @db.Uuid
+  user_id  String @db.Uuid
   group_id String @db.Uuid
+  Group    Group  @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  User     User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  User  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  Group Group @relation(fields: [group_id], references: [id], onDelete: Cascade)
-
-  @@id([user_id, group_id]) // Composite primary key
-}
-
-model Event {
-  id          String   @id @default(uuid()) @db.VarChar(255)
-  summary     String   @db.VarChar(255)
-  description String?
-  isComplete  Boolean?
-  type        String?  @db.VarChar(50)
-  startTime   DateTime?
-  endTime     DateTime?
-  createTime  DateTime @default(now())
-  priority    Int?
-  group_id    String?  @db.Uuid
-  Group       Group?   @relation(fields: [group_id], references: [id], onDelete: Cascade)
-}
-
-model Message {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String?  @db.Uuid
-  createTime DateTime @default(now())
-  isBot      Boolean
-  text       String?
-  User       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([user_id, group_id])
 }
