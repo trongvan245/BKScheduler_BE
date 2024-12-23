@@ -3,7 +3,7 @@ import { Transform } from "class-transformer";
 
 export class CreateEventDto {
   @IsString()
-  name: string;
+  summary: string;
 
   @IsString()
   @IsOptional()
@@ -19,9 +19,6 @@ export class CreateEventDto {
   @Transform(({ value }) => (value ? new Date(value) : null), { toClassOnly: true })
   endTime?: Date;
 
-  @IsBoolean()
-  @IsOptional()
-  isRecurring?: boolean;
 
   @IsBoolean()
   @IsOptional()
@@ -31,13 +28,6 @@ export class CreateEventDto {
   @IsOptional()
   type?: string;
 
-  @IsInt()
-  @IsOptional()
-  reminderTime?: number;
-
-  @IsString()
-  @IsOptional()
-  recurrentPattern?: string;
 
   @IsInt()
   @IsOptional()

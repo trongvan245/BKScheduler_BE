@@ -1,19 +1,19 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { UpdateMeDto } from "./dto";
-import { Users } from "@prisma/client";
+import { User } from "@prisma/client";
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  omitRefreshToken(user: Users) {
+  omitRefreshToken(user: User) {
     const { refresh_token, ...rest } = user;
     return rest;
   }
 
   async isUserExist(id: string) {
-    if (await this.prisma.users.findUnique({ where: { id } })) {
+    if (await this.prisma.user.findUnique({ where: { id } })) {
       return true;
     }
 
@@ -22,7 +22,7 @@ export class UserService {
 
   async getUser(id: string) {
     await this.isUserExist(id);
-    const user = await this.prisma.users.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id },
     });
     delete user.refresh_token;
@@ -41,7 +41,7 @@ export class UserService {
       hd: hd ?? undefined,
       isSync: isSync ?? undefined,
     };
-    const user = await this.prisma.users.update({
+    const user = await this.prisma.user.update({
       where: { id },
       data: updateData,
     });

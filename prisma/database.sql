@@ -1,5 +1,5 @@
 
-CREATE TABLE Users (
+CREATE TABLE "user" (
     refresh_token VARCHAR(255),
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -20,38 +20,38 @@ CREATE TABLE "group" (
     numMember INT 
 );
 
-CREATE TABLE User_Group (
+CREATE TABLE user_group (
     user_id UUID,
     group_id UUID,
   
     PRIMARY KEY (user_id, group_id),
-    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE,
     FOREIGN KEY (group_id) REFERENCES "group"(id) ON DELETE CASCADE
 );
 
 
-CREATE TABLE Event (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
+CREATE TABLE "event" (
+    id VARCHAR(255) PRIMARY KEY DEFAULT gen_random_uuid(),
+    summary VARCHAR(255) NOT NULL,
     description TEXT,
-    startTime TIMESTAMP,
-    endTime TIMESTAMP,
-    isRecurring BOOLEAN,
     isComplete BOOLEAN,
     type VARCHAR(50),
-    reminderTime INT,
-    recurrentPattern VARCHAR(255),
+    
+    startTime TIMESTAMP,
+    endTime TIMESTAMP ,
+    createTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
     priority INT,
     group_id UUID,
     FOREIGN KEY (group_id) REFERENCES "group"(id) ON DELETE CASCADE
 );
 
-CREATE TABLE Message (
+CREATE TABLE "message" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     userId UUID,
     createTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     isBot BOOLEAN,
     text TEXT,
-    FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES "user"(id) ON DELETE CASCADE
 );
 

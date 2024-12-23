@@ -6,10 +6,18 @@ import { JwtGuard } from "./common/guards";
 import { PrismaService } from "./prisma/prisma.service";
 import { PrismaModule } from "./prisma/prisma.module";
 import { EventModule } from "./event/event.module";
-import { UserModule } from './user/user.module';
+import { UserModule } from "./user/user.module";
+import { GoogleCalendarModule } from "./google-calendar/calendar.module";
 
 @Module({
-  imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true }), PrismaModule, EventModule, UserModule],
+  imports: [
+    AuthModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
+    EventModule,
+    UserModule,
+    GoogleCalendarModule,
+  ],
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: JwtGuard }, PrismaService],
   exports: [PrismaService],

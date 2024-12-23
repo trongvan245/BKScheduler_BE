@@ -23,7 +23,7 @@ export class AuthService {
   }
 
   async isEmailExist(email: string) {
-    return this.prisma.users.findUnique({
+    return this.prisma.user.findUnique({
       where: {
         email,
       },
@@ -37,7 +37,7 @@ export class AuthService {
 
     if (user) return user;
 
-    const newUser = await this.prisma.users.create({
+    const newUser = await this.prisma.user.create({
       data: {
         email,
         family_name,
@@ -128,7 +128,7 @@ export class AuthService {
       expiresIn: "1h",
     });
 
-    const res = await this.prisma.users.update({
+    const res = await this.prisma.user.update({
       where: {
         email,
       },

@@ -10,7 +10,7 @@ export class EventController {
   constructor(private readonly eventService: EventService) {}
   @Public()
   @Post()
-  async createEvent(@Body() eventData: CreateEventDto): Promise<Event> {
+  async createEvent(@Body() eventData: CreateEventDto) {
     return this.eventService.createEvent(eventData);
   }
 
@@ -22,19 +22,19 @@ export class EventController {
 
   @Public()
   @Get()
-  async getAllEvents(): Promise<Event[]> {
+  async getAllEvents() {
     return this.eventService.getAllEvents();
   }
 
-  @Public()
-  @Put(":id")
-  async updateEvent(@Param("id") eventId: string, @Body() eventData: UpdateEventDto): Promise<Event> {
-    return this.eventService.updateEvent(eventId, eventData);
-  }
+  // @Public()
+  // @Put(":id")
+  // async updateEvent(@Param("id") eventId: string, @Body() eventData: UpdateEventDto): Promise<Event> {
+  //   return this.eventService.updateEvent(eventId, eventData);
+  // }
 
-  @Public()
-  @Delete(":id")
-  async deleteEvent(@Param("id") eventId: string): Promise<Event> {
-    return this.eventService.deleteEvent(eventId);
-  }
+  // @Public()
+  // @Delete(":id")
+  // async deleteEvent(@Param("id") eventId: string): Promise<Event> {
+  //   return this.eventService.deleteEvent(eventId);
+  // }
 }
