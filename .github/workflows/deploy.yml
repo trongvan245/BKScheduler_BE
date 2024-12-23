@@ -58,5 +58,5 @@ jobs:
           if pm2 describe BKScheduler_BE > /dev/null; then
           pm2 delete BKScheduler_BE
           fi  
-          pm2 start dist/index.js --name "BKScheduler_BE" # Adjust the entry point to your project's start file
+          pm2 start dist/main.js --name "BKScheduler_BE" # Adjust the entry point to your project's start file
           pm2 save # Save the PM2 process list
