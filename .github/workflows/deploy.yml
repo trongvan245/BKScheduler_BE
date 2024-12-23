@@ -38,10 +38,15 @@ jobs:
           echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
           echo "GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}" >> .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          cat .env
 
       # Install dependencies
       - name: Install dependencies
         run: npm install
+        
+      # Install dependencies
+      - name: Setup Prisma
+        run: npx prisma generate
 
       # Build the project
       - name: Build project
