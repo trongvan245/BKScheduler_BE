@@ -40,7 +40,7 @@ export class AuthController {
       throw new ForbiddenException(AUTH_MESSAGES.AUTHORIZATION_CODE_REQUIRED);
     }
 
-    const payload = await this.authService.verifyUser(code);
+    const payload = await this.authService.verifyGoogleOauth(code);
 
     return {
       ...payload,

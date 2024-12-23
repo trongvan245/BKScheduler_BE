@@ -2,15 +2,16 @@ import { ForbiddenException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import axios from "axios";
-import { OAuth2Client } from "google-auth-library";
+import { OAuth2Client, TokenPayload } from "google-auth-library";
 import { AUTH_MESSAGES } from "src/common/constants";
 import { JwtPayLoad } from "src/common/model";
+import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
   private oauth2Client: OAuth2Client;
   constructor(
-    // private prisma: PrismaService,
+    private prisma: PrismaService,
     private config: ConfigService,
     private jwtService: JwtService,
   ) {
@@ -21,6 +22,36 @@ export class AuthService {
     );
   }
 
+  async isEmailExist(email: string) {
+    return this.prisma.users.findUnique({
+      where: {
+        email,
+      },
+    });
+  }
+
+  async addUser(payload: TokenPayload) {
+    const { email, family_name, given_name, picture, hd, name, email_verified } = payload;
+
+    const user = this.isEmailExist(email);
+
+    if (user) return user;
+
+    const newUser = await this.prisma.users.create({
+      data: {
+        email,
+        family_name,
+        given_name,
+        picture,
+        hd,
+        name,
+        verified_email: email_verified,
+      },
+    });
+
+    return newUser;
+  }
+
   async verifyGoogleOneTap(credential: string) {
     try {
       const ticket = await this.oauth2Client.verifyIdToken({
@@ -28,28 +59,22 @@ export class AuthService {
         audience: this.config.get("GOOGLE_CLIENT_ID"),
       });
       const payload = ticket.getPayload();
-      const { email, family_name, given_name, picture, hd, name, email_verified } = payload;
+      const user = await this.addUser(payload);
+
       const [access_token, refresh_token] = await Promise.all([
-        this.signAccessToken(email),
-        this.signRefreshToken(email),
+        this.signAccessToken(payload.email),
+        this.signRefreshToken(payload.email),
       ]);
+
       return {
-        access_token,
-        refresh_token,
-        email,
-        family_name,
-        given_name,
-        verified_email: email_verified,
-        name,
-        picture,
-        hd,
+        ...user,
       };
     } catch (error) {
       console.log(error);
       throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
     }
   }
-  async verifyUser(code: string) {
+  async verifyGoogleOauth(code: string) {
     try {
       const response = await axios.get("https://www.googleapis.com/oauth2/v1/userinfo", {
         headers: {
@@ -57,25 +82,19 @@ export class AuthService {
         },
       });
 
-      const { email, family_name, given_name, picture, hd, name, email_verified } = response.data;
+      const payload = response.data; //fuck this i cant use typescript properly
 
       const [access_token, refresh_token] = await Promise.all([
-        this.signAccessToken(email),
-        this.signRefreshToken(email),
+        this.signAccessToken(payload.email),
+        this.signRefreshToken(payload.email),
       ]);
+
+      const user = await this.addUser(payload);
+
       return {
-        access_token,
-        refresh_token,
-        email,
-        verified_email: email_verified,
-        name,
-        family_name,
-        given_name,
-        picture,
-        hd,
+        ...user,
       };
     } catch (error) {
-      // console.log(error);
       throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
     }
   }
@@ -104,10 +123,21 @@ export class AuthService {
       email,
     } as JwtPayLoad;
 
-    return this.jwtService.signAsync(tokenPayload, {
+    const refresh_token = await this.jwtService.signAsync(tokenPayload, {
       secret: this.config.get<string>("refresh_token_secret"),
       expiresIn: "1h",
     });
+
+    const res = await this.prisma.users.update({
+      where: {
+        email,
+      },
+      data: {
+        refresh_token,
+      },
+    });
+
+    return refresh_token;
   }
   async signAccessToken(email: string) {
     const tokenPayload = {
@@ -115,10 +145,12 @@ export class AuthService {
       email,
     } as JwtPayLoad;
 
-    return this.jwtService.signAsync(tokenPayload, {
+    const access_token = await this.jwtService.signAsync(tokenPayload, {
       secret: this.config.get<string>("access_token_secret"),
       expiresIn: "15m",
     });
+
+    return access_token
   }
 
   async resignAccessToken(refresh_token: string) {
