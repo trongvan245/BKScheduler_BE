@@ -6,6 +6,7 @@ import { AUTH_MESSAGES } from "src/common/constants";
 import { GoogleAuthGuard } from "./guard";
 import { JwtPayLoad } from "src/common/model";
 import { RefreshTokenDto } from "./dto";
+import axios from "axios";
 
 @ApiTags("authenticate")
 @Controller("auth")
@@ -24,12 +25,12 @@ export class AuthController {
     return { msg: "You have login" };
   }
 
-  // @Public()
-  // @Get("google/login")
-  // @UseGuards(GoogleAuthGuard) //use this to handle redirection
-  // login() {
-  //   return { msg: "ok" };
-  // }
+  @Public()
+  @Get("login")
+  @UseGuards(GoogleAuthGuard) //use this to handle redirection
+  login() {
+    return { msg: "ok" };
+  }
 
   @Public()
   @Get("google")
@@ -37,19 +38,21 @@ export class AuthController {
     if (!code) {
       throw new ForbiddenException(AUTH_MESSAGES.AUTHORIZATION_CODE_REQUIRED);
     }
-    const { email, family_name, given_name, picture, hd, name, email_verified } =
-      await this.authService.verifyUser(code); //This might be helpful
 
-    // const user = await this.authService.validateUser(email, family_name, given_name, picture);
+    try {
+      const response = await axios.get("https://www.googleapis.com/oauth2/v1/userinfo", {
+        headers: {
+          Authorization: `Bearer ${code}`,
+        },
+      });
 
-    const [access_token, refresh_token] = await Promise.all([
-      this.authService.signAccessToken(email),
-      this.authService.signRefreshToken(email),
-    ]);
+      const { email, family_name, given_name, picture, hd, name, email_verified } = response.data;
 
-    return {
-      msg: "Success",
-      data: {
+      const [access_token, refresh_token] = await Promise.all([
+        this.authService.signAccessToken(email),
+        this.authService.signRefreshToken(email),
+      ]);
+      return {
         access_token,
         refresh_token,
         id: 1,
@@ -60,8 +63,41 @@ export class AuthController {
         given_name,
         picture,
         hd,
-      },
-    };
+      };
+    } catch (error) {
+      // console.log(error);
+      throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
+    }
+    // const { data } = await axios.post('https://oauth2.googleapis.com/token', {
+    //   code,
+    //   client_id: process.env.GOOGLE_CLIENT_ID,
+    //   client_secret: process.env.GOOGLE_CLIENT_SECRET,
+    //   redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+    //   grant_type: 'authorization_code',
+    // });
+
+    // const { email, family_name, given_name, picture, hd, name, email_verified } =
+    //   await this.authService.verifyUser(code); //This might be helpful
+
+    // // const user = await this.authService.validateUser(email, family_name, given_name, picture);
+
+    // const [access_token, refresh_token] = await Promise.all([
+    //   this.authService.signAccessToken(email),
+    //   this.authService.signRefreshToken(email),
+    // ]);
+
+    // return {
+    //   access_token,
+    //   refresh_token,
+    //   id: 1,
+    //   email,
+    //   verified_email: email_verified,
+    //   name,
+    //   family_name,
+    //   given_name,
+    //   picture,
+    //   hd,
+    // };
   }
 
   @ApiOperation({ summary: "Renew Access Token" })
