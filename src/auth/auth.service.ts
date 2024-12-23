@@ -16,7 +16,7 @@ export class AuthService {
     this.oauth2Client = new OAuth2Client(
       config.get("GOOGLE_CLIENT_ID"),
       config.get("GOOGLE_CLIENT_SECRET"),
-      config.get("GOOGLE_REDIRECT_URI"),
+      // config.get("GOOGLE_REDIRECT_URI"),
     );
   }
 
