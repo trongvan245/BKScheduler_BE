@@ -4,9 +4,11 @@ import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtGuard } from "./common/guards";
 import { PrismaService } from "./prisma/prisma.service";
+import { PrismaModule } from "./prisma/prisma.module";
+import { EventModule } from "./event/event.module";
 
 @Module({
-  imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true })],
+  imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true }), PrismaModule, EventModule],
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: JwtGuard }, PrismaService],
   exports: [PrismaService],
