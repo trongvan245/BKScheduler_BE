@@ -24,12 +24,12 @@ export class AuthController {
     return { msg: "You have login" };
   }
 
-  // @Public()
-  // @Get("google/login")
-  // @UseGuards(GoogleAuthGuard) //use this to handle redirection
-  // login() {
-  //   return { msg: "ok" };
-  // }
+  @Public()
+  @Get("login")
+  @UseGuards(GoogleAuthGuard) //use this to handle redirection
+  login() {
+    return { msg: "ok" };
+  }
 
   @Public()
   @Get("google")
