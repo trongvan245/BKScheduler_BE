@@ -1,0 +1,35 @@
+name: Deploy with PM2
+
+on:
+  push:
+    branches:
+      - main # Adjust this to the branch you want to deploy
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted # Ensure this matches your runner's labels
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16" # Adjust based on your project's Node.js version
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Build the project
+      - name: Build project
+        run: npm run build # Adjust this if your project uses a different build command
+
+      # Restart the app with PM2
+      - name: Restart with PM2
+        run: |
+          pm2 delete BKScheduler_BE || true # Remove the app if it already exists
+          pm2 start dist/index.js --name "BKScheduler_BE" # Adjust the entry point to your project's start file
+          pm2 save # Save the PM2 process list
