@@ -7,7 +7,9 @@ import { JwtPayLoad } from "src/common/model";
 export class UserController {
   constructor(private userService: UserService) {}
 
-  async getMe(@GetUser() user: JwtPayLoad) {
+  async getMe(@GetUser() { sub, email }: JwtPayLoad) {
+    const user = await this.userService.getUser(sub);
+
     
   }
 }
