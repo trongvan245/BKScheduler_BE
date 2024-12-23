@@ -4,6 +4,19 @@ import { CreateEventDto } from "./dto/create-event.dto";
 import { GoogleCalendarService } from "../google-calendar/calendar.service";
 import { BadRequestException } from "@nestjs/common";
 
+interface GoogleEvent {
+  id: string;
+  summary: string;
+  description: string;
+  isComplete: boolean;
+  type: string;
+  priority: number;
+  createdTime: string;
+  startTime: string;
+  endTime: string;
+  group_id: string | null;
+}
+
 @Injectable()
 export class EventService {
   constructor(
@@ -12,7 +25,7 @@ export class EventService {
   ) {}
 
   async syncEventsWithGoogleCalendar() {
-    const googleEvents = await this.googleCalendarService.listEvents();
+    const googleEvents:GoogleEvent[] = await this.googleCalendarService.listEvents();
     console.log(googleEvents);
     googleEvents.forEach(async (event) => {
       const findEvent = await this.prisma.event.findUnique({
