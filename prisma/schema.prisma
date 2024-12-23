@@ -15,7 +15,6 @@ datasource db {
 
 model Users {
   id            String   @id @default(uuid())
-  access_token  String?
   refresh_token String?
   email         String   @unique
   verified_email Boolean
