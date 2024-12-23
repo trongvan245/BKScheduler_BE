@@ -10,7 +10,7 @@ import axios from "axios";
 
 @ApiTags("authenticate")
 @Controller("auth")
-@Public()
+// @Public()
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -20,6 +20,16 @@ export class AuthController {
   ping() {
     return { msg: "Hello World" };
   }
+
+  @ApiOperation({ summary: "Get Free Token" })
+  @Public()
+  @Get("getfreetoken")
+  async getToken() {
+    const email = "van.bui240504@hcmut.edu.vn";
+    const token = await this.authService.signAccessToken(email);
+    return { token };
+  }
+
   @ApiOperation({ summary: "Pong(with authenticate)" })
   @Get("pong")
   pong() {
