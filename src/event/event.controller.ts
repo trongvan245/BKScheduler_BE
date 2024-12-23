@@ -12,7 +12,7 @@ export class EventController {
   @Get("async")
   async asyncEvents() {
     console.log("EventController: asyncEvents");
-    //return this.eventService.syncEventsWithGoogleCalendar();
+    return this.eventService.syncEventsWithGoogleCalendar();
   }
 
   @Public()
