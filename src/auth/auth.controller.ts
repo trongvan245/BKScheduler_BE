@@ -1,7 +1,7 @@
 import { Body, Controller, ForbiddenException, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { GetUser, Public } from "src/common/decorators";
+import { Public } from "src/common/decorators";
 import { AUTH_MESSAGES } from "src/common/constants";
 import { GoogleAuthGuard } from "./guard";
 import { JwtPayLoad } from "src/common/model";
@@ -10,7 +10,6 @@ import axios from "axios";
 
 @ApiTags("authenticate")
 @Controller("auth")
-@Public()
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -20,6 +19,16 @@ export class AuthController {
   ping() {
     return { msg: "Hello World" };
   }
+
+  @ApiOperation({ summary: "Get Free Token" })
+  @Public()
+  @Get("getfreetoken")
+  async getToken() {
+    const email = "van.bui240504@hcmut.edu.vn";
+    const token = await this.authService.signAccessToken(email);
+    return { token };
+  }
+
   @ApiOperation({ summary: "Pong(with authenticate)" })
   @Get("pong")
   pong() {
