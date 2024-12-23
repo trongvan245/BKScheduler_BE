@@ -48,19 +48,16 @@ export class AuthController {
     ]);
 
     return {
-      msg: "Success",
-      data: {
-        access_token,
-        refresh_token,
-        id: 1,
-        email,
-        verified_email: email_verified,
-        name,
-        family_name,
-        given_name,
-        picture,
-        hd,
-      },
+      access_token,
+      refresh_token,
+      id: 1,
+      email,
+      verified_email: email_verified,
+      name,
+      family_name,
+      given_name,
+      picture,
+      hd,
     };
   }
 
