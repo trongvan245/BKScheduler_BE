@@ -11,32 +11,33 @@ export class EventService {
     private readonly googleCalendarService: GoogleCalendarService,
   ) {}
 
-  // async syncEventsWithGoogleCalendar() {
-  //   const googleEvents = await this.googleCalendarService.listEvents();
-  //   googleEvents.forEach(async (event) => {
-  //     const findEvent = await this.prisma.event.findUnique({
-  //       where: {
-  //         id: event.id,
-  //       },
-  //     });
+  async syncEventsWithGoogleCalendar() {
+    const googleEvents = await this.googleCalendarService.listEvents();
+    console.log(googleEvents);
+    googleEvents.forEach(async (event) => {
+      const findEvent = await this.prisma.event.findUnique({
+        where: {
+          id: event.id,
+        },
+      });
 
-  //     if (!findEvent) {
-  //       await this.prisma.event.create({
-  //         data: {
-  //           id: event.id,
-  //           summary: event.summary,
-  //           description: event.description,
-  //           startTime: event.startTime,
-  //           endTime: event.endTime,
-  //           isComplete: false,
-  //           type: "google_calendar",
-  //           priority: 1,
-  //         },
-  //       });
-  //     }
-  //   });
-  //   return { message: "Synced successfully" };
-  // }
+      if (!findEvent) {
+        await this.prisma.event.create({
+          data: {
+            id: event.id,
+            summary: event.summary,
+            description: event.description,
+            startTime: event.startTime,
+            endTime: event.endTime,
+            isComplete: false,
+            type: "google_calendar",
+            priority: 1,
+          },
+        });
+      }
+    });
+    return { message: "Synced successfully" };
+  }
 
   async createEvent(data: CreateEventDto) {
     const startDate = new Date(data.startTime);
