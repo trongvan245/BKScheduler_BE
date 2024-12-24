@@ -7,42 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Event {
-  id          String    @id @db.VarChar(255)
-  summary     String    @db.VarChar(255)
-  description String?
-  isComplete  Boolean?
-  type        String?   @db.VarChar(50)
-  startTime   DateTime?
-  endTime     DateTime?
-  createTime  DateTime  @default(now())
-  priority    Int?
-  group_id    String?   @db.Uuid
-  Group       Group?    @relation(fields: [group_id], references: [id], onDelete: Cascade)
-}
-
-model Group {
-  id          String      @id @db.Uuid
-  name        String      @db.VarChar(255)
-  createTime  DateTime    @default(now())
-  description String?
-  numMember   Int?
-  Event       Event[]
-  UserGroup   UserGroup[]
-}
-
-model Message {
-  id         String   @id @db.Uuid
-  userId     String?  @db.Uuid
-  createTime DateTime @default(now())
-  text       String?
-  response   String?
-  textbot    String?
-  User       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model User {
-  id                     String      @id @db.Uuid
+  id                     String      @id @default(uuid()) @db.Uuid
   refresh_token          String?     @db.VarChar(255)
   email                  String      @unique @db.VarChar(255)
   verified_email         Boolean
@@ -53,8 +19,25 @@ model User {
   hd                     String?     @db.VarChar(255)
   isSync                 Boolean     @default(false)
   calendar_refresh_token String?     @db.VarChar(255)
-  Message                Message[]
-  UserGroup              UserGroup[]
+  messages               Message[]
+  userGroups             UserGroup[]
+
+  indiGroupId String @unique @db.Uuid
+
+  indiGroup Group @relation(fields: [indiGroupId], references: [id], onDelete: Cascade)
+}
+
+model Group {
+  id          String      @id @default(uuid()) @db.Uuid
+  ownerId     String?     @unique @db.Uuid
+  name        String      @db.VarChar(255)
+  createTime  DateTime    @default(now())
+  description String?
+  numMember   Int?
+  events      Event[]
+  userGroups  UserGroup[]
+
+  indiUser User?
 }
 
 model UserGroup {
@@ -65,3 +48,29 @@ model UserGroup {
 
   @@id([user_id, group_id])
 }
+
+model Event {
+  id               String    @id @default(uuid())
+  summary          String?
+  name             String?
+  description      String?
+  startTime        DateTime?
+  endTime          DateTime?
+  isRecurring      Boolean?
+  isComplete       Boolean?
+  type             String?
+  reminderTime     Int?
+  recurrentPattern String?
+  priority         Int?
+  group_id         String?   @db.Uuid
+  group            Group?    @relation(fields: [group_id], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id         String   @id @db.Uuid
+  userId     String?  @db.Uuid
+  createTime DateTime @default(now())
+  text       String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+

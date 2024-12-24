@@ -29,7 +29,7 @@ export class UserService {
     return this.omitRefreshToken(user);
   }
 
-  async updateMe(id: string, { verified_email, name, given_name, family_name, picture, hd, isSync }: UpdateMeDto) {
+  async updateMe(id: string, { verified_email, name, given_name, family_name, picture, hd, isSync, calendar_refresh_token }: UpdateMeDto) {
     await this.isUserExist(id);
 
     const updateData = {
@@ -40,6 +40,7 @@ export class UserService {
       picture: picture ?? undefined,
       hd: hd ?? undefined,
       isSync: isSync ?? undefined,
+      calendar_refresh_token: calendar_refresh_token ?? undefined,
     };
     const user = await this.prisma.user.update({
       where: { id },
