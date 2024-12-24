@@ -8,26 +8,28 @@ datasource db {
 }
 
 model User {
-  id             String      @id @default(uuid()) @db.Uuid
-  refresh_token  String?     @db.VarChar(255)
-  email          String      @unique @db.VarChar(255)
-  verified_email Boolean
-  name           String?     @db.VarChar(255)
-  given_name     String?     @db.VarChar(255)
-  family_name    String?     @db.VarChar(255)
-  picture        String?     @db.VarChar(255)
-  hd             String?     @db.VarChar(255)
-  isSync         Boolean     @default(false)
-  messages       Message[]
-  userGroups     UserGroup[]
+  id                     String      @id @default(uuid()) @db.Uuid
+  refresh_token          String?     @db.VarChar(255)
+  email                  String      @unique @db.VarChar(255)
+  verified_email         Boolean
+  name                   String?     @db.VarChar(255)
+  given_name             String?     @db.VarChar(255)
+  family_name            String?     @db.VarChar(255)
+  picture                String?     @db.VarChar(255)
+  hd                     String?     @db.VarChar(255)
+  isSync                 Boolean     @default(false)
+  calendar_refresh_token String?     @db.VarChar(255)
+  messages               Message[]
+  userGroups             UserGroup[]
 
-  indiGroupId String @unique
+  indiGroupId String @unique @db.Uuid
 
   indiGroup Group @relation(fields: [indiGroupId], references: [id], onDelete: Cascade)
 }
 
 model Group {
   id          String      @id @default(uuid()) @db.Uuid
+  ownerId     String?     @unique @db.Uuid
   name        String      @db.VarChar(255)
   createTime  DateTime    @default(now())
   description String?
@@ -49,17 +51,19 @@ model UserGroup {
 }
 
 model Event {
-  id          String    @id @default(uuid()) @db.VarChar(255)
-  summary     String    @db.VarChar(255)
-  description String?
-  isComplete  Boolean?
-  type        String?   @db.VarChar(50)
-  startTime   DateTime?
-  endTime     DateTime?
-  createTime  DateTime  @default(now())
-  priority    Int?
-  group_id    String?   @db.Uuid
-  Group       Group?    @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  id               String    @id @default(uuid())
+  name             String
+  description      String?
+  startTime        DateTime?
+  endTime          DateTime?
+  isRecurring      Boolean?
+  isComplete       Boolean?
+  type             String?
+  reminderTime     Int?
+  recurrentPattern String?
+  priority         Int?
+  group_id         String?   @db.Uuid
+  group            Group?    @relation(fields: [group_id], references: [id], onDelete: Cascade)
 }
 
 model Message {
@@ -68,5 +72,5 @@ model Message {
   createTime DateTime @default(now())
   isBot      Boolean
   text       String?
-  User       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

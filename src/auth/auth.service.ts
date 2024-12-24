@@ -50,9 +50,15 @@ export class AuthService {
           create: {
             name: "IndiGroup",
             numMember: 1,
+            ownerId: undefined, // Placeholder to be updated after user creation
           }
         }
       },
+    });
+
+    await this.prisma.group.update({
+      where: { id: newUser.indiGroupId },
+      data: { ownerId: newUser.id },
     });
 
     return newUser;
