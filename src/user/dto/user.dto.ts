@@ -30,4 +30,9 @@ export class UpdateMeDto {
   @ApiProperty()
   @IsString()
   isSync: boolean;
+
+
+  @ApiProperty()
+  @IsString()
+  calendar_refresh_token: string;
 }
