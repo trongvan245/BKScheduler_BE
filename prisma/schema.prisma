@@ -68,7 +68,7 @@ model Message {
   userId     String?  @db.Uuid
   createTime DateTime @default(now())
   text       String?
-  textBot    String?
   response   String?
+  textBot    String?
   user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

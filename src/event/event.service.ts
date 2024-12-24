@@ -197,4 +197,28 @@ export class EventService {
 
     return event;
   }
+
+  async queryEvent(event, data) {
+    switch (event) {
+      case "list":
+        return this.getAllEvents();
+      case "find":
+        return this.findEventById(data.id);
+      default:
+        return null;
+    }
+  }
+
+  async actionEvent(event, data) {
+    switch (event) {
+      case "create":
+        return this.createEvent(data);
+      case "update":
+        return this.updateEvent(data.id, data);
+      case "delete":
+        return this.deleteEvent(data.id);
+      default:
+        return null;
+    }
+  }
 }

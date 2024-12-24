@@ -1,7 +1,7 @@
 // src/chatbot/services/llm.service.ts
-import { Injectable } from '@nestjs/common';
-import { MessageAnalysis, RequestType } from './models/chatbot.model';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Injectable } from "@nestjs/common";
+import { MessageAnalysis, RequestType } from "./models/chatbot.model";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 @Injectable()
 export class LLMService {
@@ -10,7 +10,7 @@ export class LLMService {
 
   constructor() {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+    this.model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
   }
 
   async analyzeMessage(message: string): Promise<MessageAnalysis> {
@@ -72,35 +72,31 @@ Return only the JSON object without any additional text or explanation.`;
       const result = await this.model.generateContent(prompt);
       const response = result.response;
       const text = response.text();
-      
+
       // Extract JSON from the response
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        throw new Error('Invalid response format');
+        throw new Error("Invalid response format");
       }
-      
+
       const analysis = JSON.parse(jsonMatch[0]);
       return {
         message,
-        ...analysis
+        ...analysis,
       };
     } catch (error) {
-      console.error('Error analyzing message:', error);
+      console.error("Error analyzing message:", error);
       // Return a default analysis for unknown messages
       return {
         message,
-        requestType: 'unknown',
-        event: 'unknown',
-        data: {}
+        requestType: "unknown",
+        event: "unknown",
+        data: {},
       };
     }
   }
 
-  async generateResponse(params: {
-    message: string;
-    requestType: RequestType;
-    serviceResponse: any;
-  }): Promise<string> {
+  async generateResponse(params: { message: string; requestType: RequestType; serviceResponse: any }): Promise<string> {
     const { message, requestType, serviceResponse } = params;
 
     const prompt = `You are a helpful schedule management assistant. Generate a natural and friendly response based on the following information:
@@ -144,8 +140,8 @@ Generate a response using natural language. Do not include any JSON formatting o
       const response = result.response;
       return response.text().trim();
     } catch (error) {
-      console.error('Error generating response:', error);
-      return 'I apologize, but I encountered an error processing your request. Please try again.';
+      console.error("Error generating response:", error);
+      return "I apologize, but I encountered an error processing your request. Please try again.";
     }
   }
 }
