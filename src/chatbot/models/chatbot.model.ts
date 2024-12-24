@@ -17,12 +17,12 @@ export interface MessageHistory {
   text: string;
   textBot?: string;
   response?: string;
-  requestType: RequestType;
-  timestamp: Date;
+  createTime: Date;
 }
 
 export interface MessageAnalysis {
     message: string;
     requestType: RequestType;
     event: string;
+    data?: any;
 }

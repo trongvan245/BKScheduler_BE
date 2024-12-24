@@ -42,18 +42,19 @@ model Message {
 }
 
 model User {
-  id             String      @id @db.Uuid
-  refresh_token  String?     @db.VarChar(255)
-  email          String      @unique @db.VarChar(255)
-  verified_email Boolean
-  name           String?     @db.VarChar(255)
-  given_name     String?     @db.VarChar(255)
-  family_name    String?     @db.VarChar(255)
-  picture        String?     @db.VarChar(255)
-  hd             String?     @db.VarChar(255)
-  isSync         Boolean     @default(false)
-  Message        Message[]
-  UserGroup      UserGroup[]
+  id                     String      @id @db.Uuid
+  refresh_token          String?     @db.VarChar(255)
+  email                  String      @unique @db.VarChar(255)
+  verified_email         Boolean
+  name                   String?     @db.VarChar(255)
+  given_name             String?     @db.VarChar(255)
+  family_name            String?     @db.VarChar(255)
+  picture                String?     @db.VarChar(255)
+  hd                     String?     @db.VarChar(255)
+  isSync                 Boolean     @default(false)
+  calendar_refresh_token String?     @db.VarChar(255)
+  Message                Message[]
+  UserGroup              UserGroup[]
 }
 
 model UserGroup {

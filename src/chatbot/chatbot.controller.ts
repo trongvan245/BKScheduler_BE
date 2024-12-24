@@ -21,12 +21,4 @@ export class ChatbotController {
   ): Promise<MessageHistory[]> {
     return this.chatbotService.getMessageHistory(userId, limit);
   }
-
-  @Get('context/:contextId')
-  @UseGuards(AuthGuard('jwt'))
-  async getContextMessages(
-    @Param('contextId') contextId: string
-  ): Promise<MessageHistory[]> {
-    return this.chatbotService.getMessagesByContext(contextId);
-  }
 }

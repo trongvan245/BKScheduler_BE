@@ -1,20 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { RequestType, ChatRequest, ChatResponse, MessageAnalysis} from './models/chatbot.model';
-import { QueryService } from './query.service';
-import { ActionService } from './action.service';
+import { MessageHistory, ChatRequest, ChatResponse, MessageAnalysis} from './models/chatbot.model';
 import { MessageService } from '../message/message.service';
 import { LLMService } from './llm.service';
 import { RetryService } from './retry.service';
+import { HandleRequestService } from './handleRequest.service';
 
 @Injectable()
 export class ChatbotService {
   private readonly logger = new Logger(ChatbotService.name);
 
   constructor(
-    private readonly queryService: QueryService,
-    private readonly actionService: ActionService,
     private readonly messageService: MessageService,
     private readonly llmService: LLMService,
+    private readonly handleRequestService: HandleRequestService,
     private readonly retryService: RetryService,
   ) {}
 
@@ -58,9 +56,9 @@ export class ChatbotService {
   ): Promise<any> {
     switch (request.requestType) {
       case 'query':
-        return this.queryService.handleQuery(request.event);
+        return this.handleRequestService.handleQuery(request.event, request.data);
       case 'action':
-        return this.actionService.handleAction(request.event);
+        return this.handleRequestService.handleAction(request.event, request.data);
       default:
         throw new Error('Unsupported request type');
     }

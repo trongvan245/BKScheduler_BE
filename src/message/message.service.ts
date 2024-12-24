@@ -1,18 +1,20 @@
 import { Injectable } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '../prisma/prisma.service';
 import { MessageHistory } from '../chatbot/models/chatbot.model';
 @Injectable()
 export class MessageService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async saveMessage(messageData: Omit<MessageHistory, 'id' | 'timestamp'>): Promise<MessageHistory> {
-    const message: MessageHistory = {
-      timestamp: new Date(),
-      ...messageData,
-    };
+  async saveMessage(messageData: Omit<MessageHistory, | 'id' | 'createTime'>) {
     // Implement save to database logic
-    this.prisma.message.create({data: message});
-    return message;
+    this.prisma.message.create({data: {
+      id: uuidv4(),
+      User: {connect: { id: messageData.userId}},
+      text: messageData.text,
+      textbot: messageData.textBot,
+      response: messageData.response
+    }});
   }
 
   async getMessageHistory(userId: string, limit = 10): Promise<MessageHistory[]> {
