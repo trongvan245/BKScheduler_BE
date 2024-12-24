@@ -1,42 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateMessageDto } from './dto/create-message.dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
-
+import { MessageHistory } from '../chatbot/models/chatbot.model';
 @Injectable()
 export class MessageService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createMessageDto: CreateMessageDto) {
-    return this.prisma.message.create({
-      data: {
-        text: createMessageDto.content,
-        userId: createMessageDto.sender,
-        createTime: createMessageDto.timestamp || new Date(),
-      },
+  async saveMessage(messageData: Omit<MessageHistory, 'id' | 'timestamp'>): Promise<MessageHistory> {
+    const message: MessageHistory = {
+      timestamp: new Date(),
+      ...messageData,
+    };
+    // Implement save to database logic
+    this.prisma.message.create({data: message});
+    return message;
+  }
+
+  async getMessageHistory(userId: string, limit = 10): Promise<MessageHistory[]> {
+    return this.prisma.message.findMany({
+      where: { userId },
+      take: limit,
+      orderBy: { createTime: 'desc' },
     });
   }
 
-  async findAll() {
-    return this.prisma.message.findMany({ include: { user: true } });
-  }
-
-  async findOne(id: string) {
-    return this.prisma.message.findUnique({ where: { id }, include: { user: true } });
-  }
-
-  async update(id: string, updateMessageDto: UpdateMessageDto) {
-    return this.prisma.message.update({
-      where: { id },
-      data: {
-        text: updateMessageDto.content,
-        userId: updateMessageDto.sender,
-        createTime: updateMessageDto.timestamp,
-      },
+  async deleteMessage(userId, messageId) {
+    return this.prisma.message.delete({
+      where: { id: messageId, userId },
     });
   }
 
-  async remove(id: string) {
-    return this.prisma.message.delete({ where: { id } });
-  }
 }

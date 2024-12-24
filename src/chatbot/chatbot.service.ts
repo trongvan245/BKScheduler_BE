@@ -1,51 +1,93 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { RequestType, ChatRequest, ChatResponse, MessageAnalysis} from './models/chatbot.model';
+import { QueryService } from './query.service';
+import { ActionService } from './action.service';
 import { MessageService } from '../message/message.service';
-import { EventService } from '../event/event.service';
-import { CreateChatDto } from './dto/create-chat.dto';
+import { LLMService } from './llm.service';
+import { RetryService } from './retry.service';
 
 @Injectable()
 export class ChatbotService {
+  private readonly logger = new Logger(ChatbotService.name);
+
   constructor(
+    private readonly queryService: QueryService,
+    private readonly actionService: ActionService,
     private readonly messageService: MessageService,
-    private readonly eventService: EventService,
+    private readonly llmService: LLMService,
+    private readonly retryService: RetryService,
   ) {}
 
-  async processChat(createChatDto: CreateChatDto): Promise<any> {
-    const { userId, message } = createChatDto;
+  async processRequest(request: ChatRequest): Promise<ChatResponse> {
+    try {
+      const analyzeRequest =  await this.analyzeRequest(request.message);
 
-    // Lấy lịch sử tin nhắn để tạo prompt
-    const chatHistory = await this.messageService.findOne(userId);
+      let serviceResponse;
+      if (analyzeRequest.requestType !== 'unknown') {
+        serviceResponse = await this.retryService.executeWithRetry(() =>
+          this.handleRequest(analyzeRequest)
+        );
+      }
 
-    // Tạo prompt
-    const prompt = `User: ${message}\nChatbot:`;
+      const response = await this.generateResponse(
+        analyzeRequest,
+        serviceResponse,
+      );
 
-    // Gửi prompt cho mô hình AI để nhận câu trả lời
-    const response = await this.generateResponse(prompt, chatHistory);
+      // Save message history
+      await this.messageService.saveMessage({
+        userId: request.userId,
+        text: request.message,
+        textBot: analyzeRequest.message,
+        response: response.message
+      });
 
-    // Nếu người dùng yêu cầu tạo lịch, gọi EventModule
-    if (this.isEventRequest(message)) {
-      const eventDetails = this.extractEventDetails(message);
-      await this.eventService.createEvent(eventDetails);
+      return response;
+    } catch (error) {
+      this.logger.error(`Error processing request: ${error.message}`);
+      return {
+        message: 'I apologize, but I encountered an error processing your request. Please try again.',
+        status: 'error',
+      };
     }
-
-    // Lưu tin nhắn vào MessageModule
-    await this.messageService.update(userId, message, response);
-
-    return { response };
   }
 
-  private async generateResponse(prompt: string, history: string[]): Promise<string> {
-    // Giả lập tạo phản hồi từ mô hình AI (thực tế dùng OpenAI hoặc mô hình khác)
-    return `This is a generated response based on: "${prompt}"`;
+  private async handleRequest(
+    request: MessageAnalysis,
+
+  ): Promise<any> {
+    switch (request.requestType) {
+      case 'query':
+        return this.queryService.handleQuery(request.event);
+      case 'action':
+        return this.actionService.handleAction(request.event);
+      default:
+        throw new Error('Unsupported request type');
+    }
   }
 
-  private isEventRequest(message: string): boolean {
-    // Xác định tin nhắn có phải yêu cầu tạo lịch không
-    return message.toLowerCase().includes('create event');
+  async getMessageHistory(userId: string, limit?: number): Promise<MessageHistory[]> {
+    return this.messageService.getMessageHistory(userId, limit);
   }
 
-  private extractEventDetails(message: string): any {
-    // Giả lập phân tích message để lấy thông tin sự kiện
-    return { title: 'Meeting', date: '2024-12-25', time: '10:00' };
+  private async analyzeRequest(message: string): Promise<MessageAnalysis> {
+    return this.llmService.analyzeMessage(message);
+  }
+
+  private async generateResponse(
+    request: MessageAnalysis,
+    serviceResponse: any,
+  ): Promise<ChatResponse> {
+    const llmResponse = await this.llmService.generateResponse({
+      message: request.message,
+      requestType: request.requestType,
+      serviceResponse
+    });
+
+    return {
+      message: llmResponse,
+      data: serviceResponse,
+      status: 'success',
+    };
   }
 }
