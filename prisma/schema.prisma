@@ -19,12 +19,10 @@ model User {
   hd                     String?     @db.VarChar(255)
   isSync                 Boolean     @default(false)
   calendar_refresh_token String?     @db.VarChar(255)
+  indiGroupId            String      @unique @db.Uuid
   messages               Message[]
+  Group                  Group       @relation(fields: [indiGroupId], references: [id], onDelete: Cascade)
   userGroups             UserGroup[]
-
-  indiGroupId String @unique @db.Uuid
-
-  indiGroup Group @relation(fields: [indiGroupId], references: [id], onDelete: Cascade)
 }
 
 model Group {
@@ -35,9 +33,8 @@ model Group {
   description String?
   numMember   Int?
   events      Event[]
+  User        User?
   userGroups  UserGroup[]
-
-  indiUser User?
 }
 
 model UserGroup {
@@ -51,7 +48,6 @@ model UserGroup {
 
 model Event {
   id               String    @id @default(uuid())
-  summary          String?
   name             String?
   description      String?
   startTime        DateTime?
@@ -63,14 +59,16 @@ model Event {
   recurrentPattern String?
   priority         Int?
   group_id         String?   @db.Uuid
+  summary          String?
   group            Group?    @relation(fields: [group_id], references: [id], onDelete: Cascade)
 }
 
 model Message {
-  id         String   @id @default(uuid()) @db.Uuid
+  id         String   @id @db.Uuid
   userId     String?  @db.Uuid
   createTime DateTime @default(now())
   text       String?
+  textBot    String?
+  response   String?
   user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
