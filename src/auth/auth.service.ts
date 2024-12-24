@@ -124,7 +124,7 @@ export class AuthService {
     } as JwtPayLoad;
 
     const refresh_token = await this.jwtService.signAsync(tokenPayload, {
-      secret: this.config.get<string>("refresh_token_secret"),
+      secret: this.config.get<string>("REFRESH_TOKEN_SECRET"),
       expiresIn: "1h",
     });
 
@@ -156,7 +156,7 @@ export class AuthService {
   async resignAccessToken(refresh_token: string) {
     try {
       const payload = (await this.jwtService.verifyAsync(refresh_token, {
-        secret: this.config.get<string>("refresh_token_secret"),
+        secret: this.config.get<string>("REFRESH_TOKEN_SECRET"),
       })) as JwtPayLoad;
 
       return this.signAccessToken(payload.email);

@@ -33,7 +33,7 @@ jobs:
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> .env
           echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> .env
-          echo "PORT" >> .env
+          echo "PORT=${{ secrets.PORT }}" >> .env
           echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
           echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
           echo "GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}" >> .env
@@ -43,7 +43,7 @@ jobs:
       # Install dependencies
       - name: Install dependencies
         run: npm install
-        
+
       # Install dependencies
       - name: Setup Prisma
         run: npx prisma generate
@@ -55,6 +55,8 @@ jobs:
       # Restart the app with PM2
       - name: Restart with PM2
         run: |
-          pm2 delete BKScheduler_BE || true # Remove the app if it already exists
-          pm2 start dist/index.js --name "BKScheduler_BE" # Adjust the entry point to your project's start file
+          if pm2 describe BKScheduler_BE > /dev/null; then
+          pm2 delete BKScheduler_BE
+          fi  
+          pm2 start dist/main.js --name "BKScheduler_BE" # Adjust the entry point to your project's start file
           pm2 save # Save the PM2 process list
