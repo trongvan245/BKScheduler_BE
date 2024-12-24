@@ -20,6 +20,10 @@ model User {
   isSync         Boolean     @default(false)
   messages       Message[]
   userGroups     UserGroup[]
+
+  indiGroupId String @unique
+
+  indiGroup Group @relation(fields: [indiGroupId], references: [id], onDelete: Cascade)
 }
 
 model Group {
@@ -30,10 +34,12 @@ model Group {
   numMember   Int?
   events      Event[]
   userGroups  UserGroup[]
+
+  indiUser User?
 }
 
 model UserGroup {
-  user_id String @db.Uuid
+  user_id  String @db.Uuid
   group_id String @db.Uuid
 
   User  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -43,17 +49,17 @@ model UserGroup {
 }
 
 model Event {
-  id          String   @id @default(uuid()) @db.VarChar(255)
-  summary     String   @db.VarChar(255)
+  id          String    @id @default(uuid()) @db.VarChar(255)
+  summary     String    @db.VarChar(255)
   description String?
   isComplete  Boolean?
-  type        String?  @db.VarChar(50)
+  type        String?   @db.VarChar(50)
   startTime   DateTime?
   endTime     DateTime?
-  createTime  DateTime @default(now())
+  createTime  DateTime  @default(now())
   priority    Int?
-  group_id    String?  @db.Uuid
-  Group       Group?   @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  group_id    String?   @db.Uuid
+  Group       Group?    @relation(fields: [group_id], references: [id], onDelete: Cascade)
 }
 
 model Message {

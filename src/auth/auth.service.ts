@@ -46,6 +46,12 @@ export class AuthService {
         hd,
         name,
         verified_email: email_verified,
+        indiGroup: {
+          create: {
+            name: "IndiGroup",
+            numMember: 1,
+          }
+        }
       },
     });
 
