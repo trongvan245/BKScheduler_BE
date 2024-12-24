@@ -18,7 +18,7 @@ export class AuthService {
     this.oauth2Client = new OAuth2Client(
       config.get("GOOGLE_CLIENT_ID"),
       config.get("GOOGLE_CLIENT_SECRET"),
-      // config.get("GOOGLE_REDIRECT_URI"),
+      config.get("GOOGLE_REDIRECT_URI"),
     );
   }
 
@@ -74,48 +74,49 @@ export class AuthService {
       throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
     }
   }
-  async verifyGoogleOauth(code: string) {
-    try {
-      const response = await axios.get("https://www.googleapis.com/oauth2/v1/userinfo", {
-        headers: {
-          Authorization: `Bearer ${code}`,
-        },
-      });
-
-      const payload = response.data; //fuck this i cant use typescript properly
-
-      const [access_token, refresh_token] = await Promise.all([
-        this.signAccessToken(payload.email),
-        this.signRefreshToken(payload.email),
-      ]);
-
-      const user = await this.addUser(payload);
-
-      return {
-        ...user,
-      };
-    } catch (error) {
-      throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
-    }
-  }
-  // async verifyUser(code: string) {
+  // async verifyGoogleOauth(code: string) {
   //   try {
-  //     const { tokens } = await this.oauth2Client.getToken(code);
+  //     const response = await axios.get("https://www.googleapis.com/oauth2/v1/userinfo", {
+  //       headers: {
+  //         Authorization: `Bearer ${code}`,
+  //       },
+  //     });
 
-  //     const options = {
-  //       idToken: tokens.id_token,
-  //       audience: this.config.get("GOOGLE_CLIENT_ID"),
+  //     const payload = response.data; //fuck this i cant use typescript properly
+
+  //     const [access_token, refresh_token] = await Promise.all([
+  //       this.signAccessToken(payload.email),
+  //       this.signRefreshToken(payload.email),
+  //     ]);
+
+  //     const user = await this.addUser(payload);
+
+  //     return {
+  //       ...user,
   //     };
-
-  //     const ticket = await this.oauth2Client.verifyIdToken(options);
-
-  //     const { email, family_name, given_name, picture, hd, name, email_verified } = ticket.getPayload();
-  //     return { email, family_name, given_name, picture, hd, name, email_verified };
   //   } catch (error) {
-  //     console.log(error);
   //     throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
   //   }
   // }
+  async verifyGoogleOauth(code: string) {
+    try {
+      const { tokens } = await this.oauth2Client.getToken(code);
+
+      const options = {
+        idToken: tokens.id_token,
+        audience: this.config.get("GOOGLE_CLIENT_ID"),
+      };
+
+      const ticket = await this.oauth2Client.verifyIdToken(options);
+      
+
+      const { email, family_name, given_name, picture, hd, name, email_verified } = ticket.getPayload();
+      return { email, family_name, given_name, picture, hd, name, email_verified };
+    } catch (error) {
+      console.log(error);
+      throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
+    }
+  }
 
   async signRefreshToken(email: string) {
     const tokenPayload = {
