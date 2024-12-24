@@ -10,9 +10,9 @@ export class MessageService {
     // Implement save to database logic
     this.prisma.message.create({data: {
       id: uuidv4(),
-      User: {connect: { id: messageData.userId}},
+      user: {connect: { id: messageData.userId}},
       text: messageData.text,
-      textbot: messageData.textBot,
+      textBot: messageData.textBot,
       response: messageData.response
     }});
   }
