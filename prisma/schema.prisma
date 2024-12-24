@@ -21,7 +21,7 @@ model User {
   calendar_refresh_token String?     @db.VarChar(255)
   indiGroupId            String      @unique @db.Uuid
   messages               Message[]
-  Group                  Group       @relation(fields: [indiGroupId], references: [id], onDelete: Cascade)
+  indiGroup              Group       @relation(fields: [indiGroupId], references: [id], onDelete: Cascade)
   userGroups             UserGroup[]
 }
 
