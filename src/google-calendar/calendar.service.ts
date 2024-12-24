@@ -1,35 +1,37 @@
 import { Injectable } from "@nestjs/common";
-import { group } from "console";
 import { google, calendar_v3 } from "googleapis";
+import { PrismaService } from "../prisma/prisma.service";
+import { UnauthorizedException } from "@nestjs/common";
 
 @Injectable()
 export class GoogleCalendarService {
-  private readonly calendar: calendar_v3.Calendar;
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor() {
+  private async getGoogleCalendarClient(userId: string): Promise<calendar_v3.Calendar> {
+    // Fetch the user's refresh token
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { calendar_refresh_token: true },
+    });
+
+    if (!user || !user.calendar_refresh_token) {
+      throw new UnauthorizedException("User does not have a valid refresh token.");
+    }
+
+    // Set up the OAuth2 client
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
       process.env.GOOGLE_REDIRECT_URI,
     );
 
-    oauth2Client.setCredentials({
-      refresh_token: process.env.CALENDAR_REFRESH_TOKEN,
-    });
+    oauth2Client.setCredentials({ refresh_token: user.calendar_refresh_token });
 
-    this.calendar = google.calendar({ version: "v3", auth: oauth2Client });
+    // Return the Google Calendar instance
+    return google.calendar({ version: "v3", auth: oauth2Client });
   }
 
-  // summary: data.summary,
-  //       description: data.description,
-  //       startTime: data.startTime,
-  //       endTime: data.endTime,
-  //       isComplete: data.isComplete,
-  //       type: data.type,
-  //       priority: data.priority,
-  //       group_id: data.group_id, // Include group_id in the create query
-  // List events
-  async listEvents(): Promise<
+  async listEvents(userId: string): Promise<
     | {
         id: string;
         summary: string;
@@ -44,7 +46,9 @@ export class GoogleCalendarService {
       }[]
     | []
   > {
-    const res = await this.calendar.events.list({
+    const calendar = await this.getGoogleCalendarClient(userId);
+
+    const res = await calendar.events.list({
       calendarId: "primary",
       timeMin: new Date().toISOString(),
       maxResults: 20,
@@ -71,8 +75,10 @@ export class GoogleCalendarService {
   }
 
   // Create an event
-  async createEvent(eventData: calendar_v3.Schema$Event): Promise<calendar_v3.Schema$Event> {
-    const res = await this.calendar.events.insert({
+  async createEvent(eventData: calendar_v3.Schema$Event, userId: string): Promise<calendar_v3.Schema$Event> {
+    const calendar = await this.getGoogleCalendarClient(userId);
+
+    const res = await calendar.events.insert({
       calendarId: "primary",
       requestBody: eventData,
     });
@@ -81,8 +87,14 @@ export class GoogleCalendarService {
   }
 
   // Update an event
-  async updateEvent(eventId: string, eventData: calendar_v3.Schema$Event): Promise<calendar_v3.Schema$Event> {
-    const res = await this.calendar.events.patch({
+  async updateEvent(
+    eventId: string,
+    userId: string,
+    eventData: calendar_v3.Schema$Event,
+  ): Promise<calendar_v3.Schema$Event> {
+    const calendar = await this.getGoogleCalendarClient(userId);
+
+    const res = await calendar.events.patch({
       calendarId: "primary",
       eventId,
       requestBody: eventData,
@@ -92,8 +104,9 @@ export class GoogleCalendarService {
   }
 
   // Delete an event
-  async deleteEvent(eventId: string): Promise<void> {
-    await this.calendar.events.delete({
+  async deleteEvent(eventId: string, userId: string): Promise<void> {
+    const calendar = await this.getGoogleCalendarClient(userId);
+    await calendar.events.delete({
       calendarId: "primary",
       eventId,
     });
