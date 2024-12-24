@@ -36,6 +36,8 @@ export class EventService {
         },
       });
 
+
+      // Sync OPTIONAL
       if (!findEvent) {
         await this.prisma.event.create({
           data: {

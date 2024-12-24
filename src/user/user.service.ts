@@ -29,7 +29,24 @@ export class UserService {
     return this.omitRefreshToken(user);
   }
 
-  async updateMe(id: string, { verified_email, name, given_name, family_name, picture, hd, isSync, calendar_refresh_token }: UpdateMeDto) {
+  async addRefreshToken(id: string, refreshToken: string) {
+    await this.isUserExist(id);
+    if(!refreshToken) {
+      throw new NotFoundException("Refresh token is required");
+    }
+    const user = await this.prisma.user.update({
+      where: { id },
+      data: {
+        calendar_refresh_token: refreshToken,
+      },
+    });
+    return this.omitRefreshToken(user);
+  }
+
+  async updateMe(
+    id: string,
+    { verified_email, name, given_name, family_name, picture, hd, isSync, calendar_refresh_token }: UpdateMeDto,
+  ) {
     await this.isUserExist(id);
 
     const updateData = {

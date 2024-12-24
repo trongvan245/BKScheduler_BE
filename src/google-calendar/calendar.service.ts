@@ -9,14 +9,14 @@ export class GoogleCalendarService {
 
   private async getGoogleCalendarClient(userId: string): Promise<calendar_v3.Calendar> {
     // Fetch the user's refresh token
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { calendar_refresh_token: true },
-    });
+    // const user = await this.prisma.user.findUnique({
+    //   where: { id: userId },
+    //   select: { calendar_refresh_token: true },
+    // });
 
-    if (!user || !user.calendar_refresh_token) {
-      throw new UnauthorizedException("User does not have a valid refresh token.");
-    }
+    // if (!user || !user.calendar_refresh_token) {
+    //   throw new UnauthorizedException("User does not have a valid refresh token.");
+    // }
 
     // Set up the OAuth2 client
     const oauth2Client = new google.auth.OAuth2(
@@ -25,7 +25,13 @@ export class GoogleCalendarService {
       process.env.GOOGLE_REDIRECT_URI,
     );
 
-    oauth2Client.setCredentials({ refresh_token: user.calendar_refresh_token });
+
+    const calendar_refresh_token = '1//046NEO437iLdqCgYIARAAGAQSNwF-L9IrrfD-YRm1S1I9UQ_bIZhNYctM1QsN7rb7xn7hMcx44hLEsmggryWFxjH2g6oO_TpHKt4'
+
+   // oauth2Client.setCredentials({ refresh_token: user.calendar_refresh_token });
+
+   oauth2Client.setCredentials({ refresh_token: calendar_refresh_token });
+
 
     // Return the Google Calendar instance
     return google.calendar({ version: "v3", auth: oauth2Client });
