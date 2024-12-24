@@ -51,6 +51,7 @@ model UserGroup {
 
 model Event {
   id               String    @id @default(uuid())
+  summary          String?
   name             String
   description      String?
   startTime        DateTime?
