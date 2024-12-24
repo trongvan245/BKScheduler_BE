@@ -7,5 +7,6 @@ import { GoogleCalendarModule } from "src/google-calendar/calendar.module";
   imports: [GoogleCalendarModule],
   controllers: [EventController],
   providers: [EventService],
+  exports: [EventService],
 })
 export class EventModule {}

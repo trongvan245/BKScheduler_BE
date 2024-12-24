@@ -6,6 +6,13 @@ import { MessageHistory } from '../chatbot/models/chatbot.model';
 export class MessageService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getMessages(userId: string): Promise<MessageHistory[]> {
+    return this.prisma.message.findMany({
+      where: { userId },
+      orderBy: { createTime: 'desc' },
+    });
+  }
+
   async saveMessage(messageData: Omit<MessageHistory, | 'id' | 'createTime'>) {
     // Implement save to database logic
     this.prisma.message.create({data: {

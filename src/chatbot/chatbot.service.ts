@@ -68,6 +68,14 @@ export class ChatbotService {
     return this.messageService.getMessageHistory(userId, limit);
   }
 
+  async getMessage(userId: string): Promise<MessageHistory[]> {
+    return this.messageService.getMessages(userId);
+  }
+
+  async deleteMessage(userId: string, messageId: string): Promise<any> {
+    return this.messageService.deleteMessage(userId, messageId);
+  }
+
   private async analyzeRequest(message: string): Promise<MessageAnalysis> {
     return this.llmService.analyzeMessage(message);
   }

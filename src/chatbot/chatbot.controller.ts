@@ -7,18 +7,26 @@ import { AuthGuard } from '@nestjs/passport';
 export class ChatbotController {
   constructor(private readonly chatbotService: ChatbotService) {}
 
-  @Post('message')
+  @Post()
   @UseGuards(AuthGuard('jwt'))
   async handleMessage(@Body() request: ChatRequest): Promise<ChatResponse> {
     return this.chatbotService.processRequest(request);
   }
 
-  @Get('history/:userId')
+  @Get()
   @UseGuards(AuthGuard('jwt'))
-  async getHistory(
-    @Param('userId') userId: string,
-    @Query('limit') limit?: number
+  async getMessage(
+    @Body() userId: string
   ): Promise<MessageHistory[]> {
-    return this.chatbotService.getMessageHistory(userId, limit);
+    return this.chatbotService.getMessage(userId);
+  }
+
+  @Post('delete')
+  @UseGuards(AuthGuard('jwt'))
+  async deleteMessage(
+    @Body() userId: string,
+    @Body() messageId: string
+  ): Promise<any> {
+    return this.chatbotService.deleteMessage(userId, messageId);
   }
 }
