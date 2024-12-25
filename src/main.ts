@@ -11,7 +11,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle("BKBotScheduler")
     .setDescription("API description")
-    .setVersion("1.0")
+    .setVersion("1.1")
     .addBearerAuth()
     .addTag("authenticate")
     .build();
