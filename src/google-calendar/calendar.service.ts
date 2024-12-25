@@ -7,7 +7,7 @@ import { UnauthorizedException } from "@nestjs/common";
 export class GoogleCalendarService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getGoogleCalendarClient(userId: string): Promise<calendar_v3.Calendar> {
+  async getGoogleCalendarClient(userId: string): Promise<calendar_v3.Calendar> {
     // Fetch the user's refresh token
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -17,6 +17,7 @@ export class GoogleCalendarService {
     if (!user || !user.calendar_refresh_token) {
       throw new UnauthorizedException("User does not have a valid refresh token.");
     }
+    console.log(user.calendar_refresh_token);
 
     // Set up the OAuth2 client
     const oauth2Client = new google.auth.OAuth2(
@@ -25,6 +26,7 @@ export class GoogleCalendarService {
       process.env.GOOGLE_REDIRECT_URI,
     );
 
+    console.log("add", user.calendar_refresh_token);
     oauth2Client.setCredentials({ refresh_token: user.calendar_refresh_token });
 
     // Return the Google Calendar instance
@@ -50,7 +52,7 @@ export class GoogleCalendarService {
 
     const res = await calendar.events.list({
       calendarId: "primary",
-      timeMin: new Date().toISOString(),
+      // timeMin: new Date().toISOString(),
       maxResults: 20,
       singleEvents: true,
       orderBy: "startTime",

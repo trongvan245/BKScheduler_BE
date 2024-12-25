@@ -24,8 +24,12 @@ export class EventService {
     private readonly googleCalendarService: GoogleCalendarService,
   ) {}
 
-  async syncEventsWithGoogleCalendar() {
-    const userId = "1";
+  async syncUserEventsWithGoogleCalendar(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
 
     const googleEvents: GoogleEvent[] = await this.googleCalendarService.listEvents(userId);
     console.log(googleEvents);
@@ -39,6 +43,7 @@ export class EventService {
       if (!findEvent) {
         await this.prisma.event.create({
           data: {
+            group_id: user.indiGroupId,
             id: event.id,
             summary: event.summary,
             description: event.description,
@@ -51,6 +56,12 @@ export class EventService {
         });
       }
     });
+
+    const newUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { isSync: true },
+    });
+
     return { message: "Synced successfully" };
   }
 
@@ -97,18 +108,69 @@ export class EventService {
   }
 
   async getAllEvents() {
-    const userId = "1";
-
-    const WebEvents = await this.prisma.event.findMany();
-    const GoogleEvents = await this.googleCalendarService.listEvents(userId);
-
-    const events = [...WebEvents, ...GoogleEvents];
-
+    const events = await this.prisma.event.findMany();
     // Sort events by startTime
     events.sort((a, b) => {
       return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
     });
     return events;
+  }
+  async getAllUserEvents(user_id: string) {
+    //toi uu truy van bang cach dat event co user_id tu dau
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: user_id,
+      },
+    });
+    const userGroups = await this.prisma.userGroup.findMany({
+      where: {
+        user_id,
+      },
+      select: {
+        group_id: true,
+      },
+    });
+    const groupIds = userGroups.map((ug) => ug.group_id);
+    groupIds.push(user.indiGroupId);
+    // console.log(groupIds);
+    const userEvents = await this.prisma.event.findMany({
+      where: {
+        group_id: {
+          in: groupIds,
+        },
+      },
+    });
+    // Sort events by startTime
+    userEvents.sort((a, b) => {
+      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+    });
+    return userEvents;
+  }
+  async getAllGroupEvents(user_id: string, group_id: string) {
+    //check user co trong group khong
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: user_id,
+      },
+    });
+    const userGroup = await this.prisma.userGroup.findFirst({
+      where: {
+        user_id,
+        group_id,
+      },
+    });
+    if (!userGroup && user.indiGroupId != group_id) throw new BadRequestException("User not in group.");
+
+    const groupEvents = await this.prisma.event.findMany({
+      where: {
+        group_id,
+      },
+    });
+    // Sort events by startTime
+    groupEvents.sort((a, b) => {
+      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+    });
+    return groupEvents;
   }
 
   async findEventById(eventId: string) {

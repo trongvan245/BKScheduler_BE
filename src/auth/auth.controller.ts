@@ -26,7 +26,7 @@ export class AuthController {
   @Get("getfreetoken")
   async getToken() {
     const email = "van.bui240504@hcmut.edu.vn";
-    const token = await this.authService.signAccessToken(email);
+    const token = await this.authService.signAccessToken(1, email);
     return { token };
   }
 
@@ -57,19 +57,19 @@ export class AuthController {
     };
   }
 
-  @Public()
-  @Post("google/one-tap")
-  async googleOneTap(@Body() { credential }: googleOneTapDto) {
-    if (!credential) {
-      throw new ForbiddenException(AUTH_MESSAGES.INVALID_ONE_TAP_CODE);
-    }
+  // @Public()
+  // @Post("google/one-tap")
+  // async googleOneTap(@Body() { credential }: googleOneTapDto) {
+  //   if (!credential) {
+  //     throw new ForbiddenException(AUTH_MESSAGES.INVALID_ONE_TAP_CODE);
+  //   }
 
-    const payload = await this.authService.verifyGoogleOneTap(credential);
+  //   const payload = await this.authService.verifyGoogleOneTap(credential);
 
-    return {
-      ...payload,
-    };
-  }
+  //   return {
+  //     ...payload,
+  //   };
+  // }
 
   @ApiOperation({ summary: "Renew Access Token" })
   @Public()
