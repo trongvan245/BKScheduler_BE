@@ -3,7 +3,7 @@ import { EventService } from "./event.service";
 import { Event } from "@prisma/client";
 import { GetUser, Public } from "src/common/decorators";
 import { JwtPayLoad } from "src/common/model";
-import { CreateEventDto, getAllGroupEventsDto, UpdateEventDto } from "./dto";
+import { CreatePersonalEventDto, getAllGroupEventsDto, UpdateEventDto } from "./dto";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 @ApiBearerAuth()
@@ -42,7 +42,13 @@ export class EventController {
     return { events };
   }
 
-  @ApiOperation({ summary: "Get all user events" })
+  @ApiOperation({ summary: "Create personal event" })
+  @Post()
+  async createPersonalEvent(@GetUser() { sub }: JwtPayLoad, @Body() eventData: CreatePersonalEventDto) {
+    return this.eventService.createEvent(sub, eventData);
+  }
+
+  @ApiOperation({ summary: "Get all user events(currently no filter)" })
   @Get("getme")
   async getAllUserEvents(@GetUser() { sub }: JwtPayLoad) {
     const res = await this.eventService.getAllUserEvents(sub);
@@ -64,12 +70,12 @@ export class EventController {
   }
 
   @Put(":id")
-  async updateEvent(@Param("id") eventId: string, @Body() eventData: UpdateEventDto): Promise<Event> {
-    return this.eventService.updateEvent(eventId, eventData);
+  async updateEvent(@GetUser() {sub}:JwtPayLoad, @Param("id") eventId: string, @Body() eventData: UpdateEventDto) {
+    return this.eventService.updateEvent(sub, eventId, eventData);
   }
 
   @Delete(":id")
-  async deleteEvent(@Param("id") eventId: string): Promise<Event> {
-    return this.eventService.deleteEvent(eventId);
+  async deleteEvent(@GetUser() {sub}:JwtPayLoad, @Param("id") eventId: string): Promise<Event> {
+    return this.eventService.deleteEvent(sub, eventId);
   }
 }

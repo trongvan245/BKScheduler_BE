@@ -12,14 +12,14 @@ async function bootstrap() {
     .setTitle("BKBotScheduler")
     .setDescription("API description")
     .setVersion("1.1")
+    .addBearerAuth()
     .addTag("authenticate")
     .addTag("events")
-    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, document, {
     swaggerOptions: {
-      // persistAuthorization: true, // Optional: Keeps the token after refreshing the page
+      persistAuthorization: true, // Optional: Keeps the token after refreshing the page
     },
   }); //https://github.com/nestjs/swagger/issues/92 add trailing slash to the end of the url
   const allowedOrigins = [
