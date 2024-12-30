@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, Query } from "@nestjs/common";
 import { EventService } from "./event.service";
 import { Event } from "@prisma/client";
-import { GetUser, Public } from "src/common/decorators";
+import { GetUser } from "src/common/decorators";
 import { JwtPayLoad } from "src/common/model";
 import { CreateEventDto, getAllGroupEventsDto, UpdateEventDto } from "./dto";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
@@ -40,6 +40,12 @@ export class EventController {
   async syncEvents(@GetUser() { sub }: JwtPayLoad) {
     const events = await this.eventService.syncUserEventsWithGoogleCalendar(sub);
     return { events };
+  }
+
+  @ApiOperation({ summary: "Create personal event" })
+  @Post("ok")
+  async createPersonalEvent(@GetUser() { sub }: JwtPayLoad, @Body() eventData: CreateEventDto) {
+    return this.eventService.createEvent(sub, eventData);
   }
 
   @ApiOperation({ summary: "Get all user events" })

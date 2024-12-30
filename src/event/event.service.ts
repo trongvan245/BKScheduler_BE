@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateEventDto } from "./dto/create-event.dto";
 import { GoogleCalendarService } from "../google-calendar/calendar.service";
 import { BadRequestException } from "@nestjs/common";
+import { CreateEventDto } from "./dto";
 
 interface GoogleEvent {
   id: string;
@@ -65,9 +65,7 @@ export class EventService {
     return { message: "Synced successfully" };
   }
 
-  async createEvent(data: CreateEventDto) {
-    const userId = "1";
-
+  async createEvent(userId: string, data: CreateEventDto) {
     const startDate = new Date(data.startTime);
     startDate.setHours(startDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
@@ -274,7 +272,7 @@ export class EventService {
   async actionEvent(event, data) {
     switch (event) {
       case "create":
-        return this.createEvent(data);
+      // return this.createEvent(data);
       case "update":
         return this.updateEvent(data.id, data);
       case "delete":
