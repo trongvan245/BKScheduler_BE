@@ -23,9 +23,9 @@ export class GoogleCalendarController {
   async updateEvent(
     @Param("id") eventId: string,
     @Param("userId") userId: string,
-    @Body() updateEventDto: Partial<CreateEventDto>,
+    @Body() updateEventsDto: Partial<CreateEventDto>,
   ) {
-    return this.googleCalendarService.updateEvent(eventId, userId, updateEventDto);
+    return this.googleCalendarService.updateEvent(eventId, userId, updateEventsDto);
   }
 
   @Delete("events/user/:userId/event:id")

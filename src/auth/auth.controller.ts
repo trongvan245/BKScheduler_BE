@@ -1,10 +1,10 @@
 import { Body, Controller, ForbiddenException, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { ApiOperation, ApiTags, ApiBearerAuth } from "@nestjs/swagger";
-import { Public } from "src/common/decorators";
 import { AUTH_MESSAGES } from "src/common/constants";
 import { GoogleAuthGuard } from "./guard";
 import { RefreshTokenDto } from "./dto";
+import { Public } from "src/common/decorators";
 
 @ApiBearerAuth()
 @ApiTags("authenticate")

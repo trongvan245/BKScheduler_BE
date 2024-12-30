@@ -2,10 +2,11 @@ import { IsString, IsOptional, IsDate, IsBoolean, IsInt } from "class-validator"
 import { Transform } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
 
-export class CreatePersonalEventDto {
-  @ApiProperty({ description: "Event summary", example: "Event Summary" })
+export class UpdateEventDto {
+  @ApiProperty({ description: "New Event summary", example: "Diffrent Summary" })
   @IsString()
-  summary: string;
+  @IsOptional()
+  summary?: string;
 
   @ApiProperty({ description: "Event Description ", example: "Event Description" })
   @IsString()
@@ -48,4 +49,25 @@ export class CreatePersonalEventDto {
   @IsString()
   @IsOptional()
   group_id?: string;
+
+  // @ApiProperty({ example: "event_type" })
+  // @IsString()
+  // @IsOptional()
+  // type?: string;
+
+  // @IsInt()
+  // @IsOptional()
+  // reminderTime?: number;
+
+  // @IsString()
+  // @IsOptional()
+  // recurrentPattern?: string;
+
+  // @IsInt()
+  // @IsOptional()
+  // priority?: number;
+
+  // @IsString()
+  // @IsOptional()
+  // group_id?: string;
 }

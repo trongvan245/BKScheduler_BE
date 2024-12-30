@@ -19,7 +19,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, document, {
     swaggerOptions: {
-      // persistAuthorization: true, // Optional: Keeps the token after refreshing the page
+      persistAuthorization: true, // Optional: Keeps the token after refreshing the page
     },
   }); //https://github.com/nestjs/swagger/issues/92 add trailing slash to the end of the url
   const allowedOrigins = [

@@ -1,4 +1,4 @@
-// export * from "./createEvent.dto";
-export * from "./update-event.dto";
+export * from "./createEvent.dto";
+export * from "./updateEvent.dto";
 export * from "./getAllGroupEvent.dto";
-export * from "./event.dto";
+// export * from "./event.dto";
