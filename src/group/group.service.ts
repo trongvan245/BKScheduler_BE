@@ -129,7 +129,7 @@ export class GroupService {
   }
 
   async findUserGroups(userId: string) {
-    return await this.prismaservice.userGroup.findMany({
+    const groups=  await this.prismaservice.userGroup.findMany({
       where: {
         user_id: userId,
       },
@@ -137,6 +137,10 @@ export class GroupService {
         Group: true,
       },
     });
+
+    const filtedGroups = groups.map((group) => group.Group);
+
+    return filtedGroups
   }
 
   async getAllGroups() {
