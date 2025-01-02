@@ -6,10 +6,12 @@ export class HandleRequestService {
 
     constructor(private readonly eventService: EventService) {}
     async handleQuery(event: any, data): Promise<any> {
-        return this.eventService.queryEvent(event, data);
+        return "Success Query";
+        // return this.eventService.queryEvent(event, data);
     }
 
     async handleAction(event: any, data): Promise<any> {
-        return this.eventService.actionEvent(event, data);
+        return "Success Action";
+        // return this.eventService.actionEvent(event, data);
     }
 }

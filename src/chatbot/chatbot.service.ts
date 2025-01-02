@@ -92,7 +92,6 @@ export class ChatbotService {
 
     return {
       message: llmResponse,
-      data: serviceResponse,
       status: 'success',
     };
   }
