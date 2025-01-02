@@ -4,7 +4,8 @@ import { Event } from "@prisma/client";
 import { GetUser, Public } from "src/common/decorators";
 import { JwtPayLoad } from "src/common/model";
 import { CreatePersonalEventDto, getAllGroupEventsDto, UpdateEventDto } from "./dto";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { GetMeOkResponseDto } from "./dto/response.dto";
 
 @ApiBearerAuth()
 @ApiTags("events")
@@ -49,6 +50,7 @@ export class EventController {
   }
 
   @ApiOperation({ summary: "Get all user events(currently no filter)" })
+  @ApiOkResponse({ description: "Get all user events succesfully", type: GetMeOkResponseDto })
   @Get("getme")
   async getAllUserEvents(@GetUser() { sub }: JwtPayLoad) {
     const res = await this.eventService.getAllUserEvents(sub);
@@ -70,12 +72,12 @@ export class EventController {
   }
 
   @Put(":id")
-  async updateEvent(@GetUser() {sub}:JwtPayLoad, @Param("id") eventId: string, @Body() eventData: UpdateEventDto) {
+  async updateEvent(@GetUser() { sub }: JwtPayLoad, @Param("id") eventId: string, @Body() eventData: UpdateEventDto) {
     return this.eventService.updateEvent(sub, eventId, eventData);
   }
 
   @Delete(":id")
-  async deleteEvent(@GetUser() {sub}:JwtPayLoad, @Param("id") eventId: string): Promise<Event> {
+  async deleteEvent(@GetUser() { sub }: JwtPayLoad, @Param("id") eventId: string): Promise<Event> {
     return this.eventService.deleteEvent(sub, eventId);
   }
 }
