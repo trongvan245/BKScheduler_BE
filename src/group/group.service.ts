@@ -83,4 +83,19 @@ export class GroupService {
 
         return userGroup;
     }
+
+    async findUserGroups(userId: string) {
+        return await this.prismaservice.userGroup.findMany({
+            where: {
+                user_id: userId,
+            },
+            select:{
+                Group: true,
+            }
+        });
+    }
+
+    async getAllGroups() {
+        return await this.prismaservice.group.findMany();
+    }
 }

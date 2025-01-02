@@ -9,6 +9,7 @@ import { EventModule } from "./event/event.module";
 import { UserModule } from "./user/user.module";
 import { GoogleCalendarModule } from "./google-calendar/calendar.module";
 import { ChatbotModule } from "./chatbot/chatbot.module";
+import { GroupModule } from "./group/group.module";
 @Module({
   imports: [
     AuthModule,
@@ -18,6 +19,7 @@ import { ChatbotModule } from "./chatbot/chatbot.module";
     UserModule,
     GoogleCalendarModule,
     ChatbotModule,
+    GroupModule,
   ],
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: JwtGuard }, PrismaService],
