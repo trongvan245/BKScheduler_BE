@@ -1,10 +1,12 @@
 import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { GroupService } from './group.service';
-import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiProperty, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { GroupDto } from './dto';
-import { Public } from 'src/common/decorators';
+import { GetUser, Public } from 'src/common/decorators';
+import { JwtPayLoad } from 'src/common/model';
 
 @ApiBearerAuth()
+@ApiTags('group')
 @Controller('group')
 export class GroupController {
     constructor(private groupservice: GroupService) { }
@@ -34,9 +36,23 @@ export class GroupController {
         return this.groupservice.removeUserFromGroup(userId, groupId);
     }
 
-    @ApiOperation({ summary: "Find a specific group with its ID" })
+    @ApiOperation({ summary: "Get a specific group with its ID(not necessary to be user's group)" })
+    @ApiQuery({ name: 'id', required: true, example: 'b4b52058-da82-4e40-b0ea-f672b59a3f1d', description: 'The ID of the group' })
     @Get(':id')
     async findGroupById(@Param('id') groupId: string) {
         return this.groupservice.findGroupById(groupId);
+    }
+
+    @ApiOperation({ summary: "Get all groups of user" })
+    @Get('mygroups')
+    async findUserGroups(@GetUser() { sub }: JwtPayLoad) {
+        const groups = await this.groupservice.findUserGroups(sub);
+        return { groups };
+    }
+
+    @ApiOperation({ summary: "Get all groups(just for development)" })
+    @Get()
+    async getAllGroups() {
+        return this.groupservice.getAllGroups();
     }
 }
