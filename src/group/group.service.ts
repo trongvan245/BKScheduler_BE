@@ -9,7 +9,7 @@ export class GroupService {
   async createGroup(userId: string, dto: GroupDto) {
     const user = await this.prismaservice.user.findUnique({
       where: {
-        id: userId
+        id: userId,
       },
     });
 
@@ -43,19 +43,28 @@ export class GroupService {
     const group = await this.prismaservice.group.findUnique({
       where: { id },
       include: {
-        User: {
+        userGroups: {
           select: {
-            id: true,
-            email: true,
-            name: true,
+            User: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+              },
+            },
           },
         },
       },
     });
 
     if (!group) throw new NotFoundException("The group is not existed");
-
-    return group;
+    const users = group.userGroups.map(userGroup => userGroup.User);
+    const flattenedGroup = {
+      ...group,
+      users,
+    };
+    delete flattenedGroup.userGroups;
+    return flattenedGroup;
   }
 
   async addUserToGroup(userId: string, groupId: string) {
@@ -129,7 +138,7 @@ export class GroupService {
   }
 
   async findUserGroups(userId: string) {
-    const groups=  await this.prismaservice.userGroup.findMany({
+    const groups = await this.prismaservice.userGroup.findMany({
       where: {
         user_id: userId,
       },
@@ -140,7 +149,7 @@ export class GroupService {
 
     const filtedGroups = groups.map((group) => group.Group);
 
-    return filtedGroups
+    return filtedGroups;
   }
 
   async getAllGroups() {
