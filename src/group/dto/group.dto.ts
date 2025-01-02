@@ -2,13 +2,13 @@ import { IsDate, IsISO8601, IsNotEmpty, IsNumber, IsString } from "class-validat
 import { ApiProperty } from "@nestjs/swagger";
 
 export class GroupDto {
-  @ApiProperty({
-    description: "The ID of the group owner",
-    example: "d28f8f2f-550d-4997-9af9-cfcc0cec625d",
-  })
-  @IsNotEmpty()
-  @IsString()
-  ownerID: string;
+  // @ApiProperty({
+  //   description: "The ID of the group owner",
+  //   example: "d28f8f2f-550d-4997-9af9-cfcc0cec625d",
+  // })
+  // @IsNotEmpty()
+  // @IsString()
+  // ownerID: string;
 
   @ApiProperty({
     description: "The name of the group. If not provided, it defaults to 'Created by [ownerID] at [createTime]'.",

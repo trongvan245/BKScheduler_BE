@@ -6,18 +6,18 @@ import { GroupDto } from "./dto";
 export class GroupService {
   constructor(private prismaservice: PrismaService) {}
 
-  async createGroup(dto: GroupDto) {
+  async createGroup(userId: string, dto: GroupDto) {
     const user = await this.prismaservice.user.findUnique({
       where: {
-        id: dto.ownerID,
+        id: userId
       },
     });
 
-    if (!user) throw new NotFoundException(`The user ${dto.ownerID} is not existed`);
+    if (!user) throw new NotFoundException(`The user ${userId} is not existed`);
 
     const group = await this.prismaservice.group.create({
       data: {
-        ownerId: dto.ownerID,
+        ownerId: userId,
         name: dto.name,
         description: dto.description,
         // numMember: dto.numMember,
@@ -26,7 +26,7 @@ export class GroupService {
           create: {
             User: {
               connect: {
-                id: dto.ownerID,
+                id: userId,
               },
             },
           },

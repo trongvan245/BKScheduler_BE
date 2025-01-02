@@ -13,8 +13,8 @@ export class GroupController {
 
   @ApiOperation({ summary: "Create a new group" })
   @Post("new")
-  async createGroup(@Body() data: GroupDto) {
-    return await this.groupservice.createGroup(data);
+  async createGroup(@GetUser() { sub }: JwtPayLoad, @Body() data: GroupDto) {
+    return await this.groupservice.createGroup(sub, data);
   }
 
   @ApiOperation({ summary: "Add an user to a group" })
@@ -35,7 +35,6 @@ export class GroupController {
     const groups = await this.groupservice.findUserGroups(sub);
     return { groups };
   }
-  
 
   @ApiOperation({ summary: "Get a specific group with its ID(not necessary to be user's group)" })
   @Get(":id")
