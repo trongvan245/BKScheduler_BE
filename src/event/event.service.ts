@@ -1,8 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateEventDto } from "./dto/create-event.dto";
 import { GoogleCalendarService } from "../google-calendar/calendar.service";
-import { BadRequestException } from "@nestjs/common";
+import { CreatePersonalEventDto, UpdateEventDto } from "./dto";
 
 interface GoogleEvent {
   id: string;
@@ -24,11 +23,15 @@ export class EventService {
     private readonly googleCalendarService: GoogleCalendarService,
   ) {}
 
-  async syncEventsWithGoogleCalendar() {
-    const userId = "1";
+  async syncUserEventsWithGoogleCalendar(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
 
     const googleEvents: GoogleEvent[] = await this.googleCalendarService.listEvents(userId);
-    console.log(googleEvents);
+    // console.log(googleEvents);
     googleEvents.forEach(async (event) => {
       const findEvent = await this.prisma.event.findUnique({
         where: {
@@ -39,6 +42,7 @@ export class EventService {
       if (!findEvent) {
         await this.prisma.event.create({
           data: {
+            group_id: user.indiGroupId,
             id: event.id,
             summary: event.summary,
             description: event.description,
@@ -51,17 +55,21 @@ export class EventService {
         });
       }
     });
+
+    const newUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { isSync: true },
+    });
+
     return { message: "Synced successfully" };
   }
 
-  async createEvent(data: CreateEventDto) {
-    const userId = "1";
-
+  async createEvent(userId: string, data: CreatePersonalEventDto) {
     const startDate = new Date(data.startTime);
-    startDate.setHours(startDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
+    // startDate.setHours(startDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
     const endDate = new Date(data.endTime);
-    endDate.setHours(endDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
+    // endDate.setHours(endDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
     const calendarEvent = await this.googleCalendarService.createEvent(
       {
@@ -97,18 +105,69 @@ export class EventService {
   }
 
   async getAllEvents() {
-    const userId = "1";
-
-    const WebEvents = await this.prisma.event.findMany();
-    const GoogleEvents = await this.googleCalendarService.listEvents(userId);
-
-    const events = [...WebEvents, ...GoogleEvents];
-
+    const events = await this.prisma.event.findMany();
     // Sort events by startTime
     events.sort((a, b) => {
       return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
     });
     return events;
+  }
+  async getAllUserEvents(user_id: string) {
+    //toi uu truy van bang cach dat event co user_id tu dau
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: user_id,
+      },
+    });
+    const userGroups = await this.prisma.userGroup.findMany({
+      where: {
+        user_id,
+      },
+      select: {
+        group_id: true,
+      },
+    });
+    const groupIds = userGroups.map((ug) => ug.group_id);
+    groupIds.push(user.indiGroupId);
+    // console.log(groupIds);
+    const userEvents = await this.prisma.event.findMany({
+      where: {
+        group_id: {
+          in: groupIds,
+        },
+      },
+    });
+    // Sort events by startTime
+    userEvents.sort((a, b) => {
+      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+    });
+    return userEvents;
+  }
+  async getAllGroupEvents(user_id: string, group_id: string) {
+    //check user co trong group khong
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: user_id,
+      },
+    });
+    const userGroup = await this.prisma.userGroup.findFirst({
+      where: {
+        user_id,
+        group_id,
+      },
+    });
+    if (!userGroup && user.indiGroupId != group_id) throw new BadRequestException("User not in group.");
+
+    const groupEvents = await this.prisma.event.findMany({
+      where: {
+        group_id,
+      },
+    });
+    // Sort events by startTime
+    groupEvents.sort((a, b) => {
+      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+    });
+    return groupEvents;
   }
 
   async findEventById(eventId: string) {
@@ -119,9 +178,7 @@ export class EventService {
     });
   }
 
-  async deleteEvent(eventId: string) {
-    const userId = "1";
-
+  async deleteEvent(userId: string, eventId: string) {
     const findEvent = await this.prisma.event.findUnique({
       where: {
         id: eventId,
@@ -129,7 +186,7 @@ export class EventService {
     });
 
     if (!findEvent) {
-      throw new BadRequestException("Event not found.");
+      throw new NotFoundException("Event not found.");
     }
 
     const event = await this.prisma.event.delete({
@@ -137,17 +194,12 @@ export class EventService {
         id: eventId,
       },
     });
-
-    if (event.type === "google_calendar") {
-      await this.googleCalendarService.deleteEvent(eventId, userId);
-    }
+    await this.googleCalendarService.deleteEvent(eventId, userId);
 
     return event;
   }
 
-  async updateEvent(eventId: string, data: Partial<CreateEventDto>) {
-    const userId = "1";
-
+  async updateEvent(userId: string, eventId: string, data: UpdateEventDto) {
     const findEvent = await this.prisma.event.findUnique({
       where: {
         id: eventId,
@@ -155,16 +207,16 @@ export class EventService {
     });
 
     if (!findEvent) {
-      return null;
+      throw new NotFoundException("Event not found.");
     }
 
     console.log(findEvent);
 
     const startDate = new Date(findEvent.startTime);
-    startDate.setHours(startDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
+    // startDate.setHours(startDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
     const endDate = new Date(findEvent.endTime);
-    endDate.setHours(endDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
+    // endDate.setHours(endDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
     const calendarEvent = await this.googleCalendarService.updateEvent(eventId, userId, {
       summary: data.summary,
@@ -209,14 +261,15 @@ export class EventService {
     }
   }
 
+  //action needed userId, can get from @GetUser() { sub }: JwtPayLoad
   async actionEvent(event, data) {
     switch (event) {
       case "create":
-        return this.createEvent(data);
+      // return this.createEvent(data);
       case "update":
-        return this.updateEvent(data.id, data);
+      // return this.updateEvent(data.id, data);
       case "delete":
-        return this.deleteEvent(data.id);
+      // return this.deleteEvent(data.id);
       default:
         return null;
     }

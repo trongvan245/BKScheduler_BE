@@ -1,50 +1,83 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from "@nestjs/common";
+import { Controller, Get, Post, Put, Delete, Param, Body, Query } from "@nestjs/common";
 import { EventService } from "./event.service";
 import { Event } from "@prisma/client";
-import { CreateEventDto } from "./dto/create-event.dto";
-import { Public } from "src/common/decorators";
-import { UpdateEventDto } from "./dto/update-event.dto";
+import { GetUser, Public } from "src/common/decorators";
+import { JwtPayLoad } from "src/common/model";
+import { CreatePersonalEventDto, getAllGroupEventsDto, UpdateEventDto } from "./dto";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { GetMeOkResponseDto } from "./dto/response.dto";
 
+@ApiBearerAuth()
+@ApiTags("events")
 @Controller("events")
 export class EventController {
-  constructor(private readonly eventService: EventService) {}
-  @Public()
-  @Get("async")
-  async asyncEvents() {
-    console.log("EventController: asyncEvents");
-    return this.eventService.syncEventsWithGoogleCalendar();
+  constructor(private eventService: EventService) {}
+
+  // @Get("async")
+  // async asyncEvents() {
+  //   console.log("EventController: asyncEvents");
+  //   return this.eventService.syncEventsWithGoogleCalendar();
+  // }
+
+  // @Post()
+  // async createPersonalEvent(@Body() eventData: CreateEventDto) {
+  //   return this.eventService.createEvent(eventData);
+  // }
+
+  // @Post()
+  // async createGroupEvent(@Body() eventData: CreateEventDto) {
+  //   console.log("EventController: createEvent");
+  //   return this.eventService.createEvent(eventData);
+  // }
+
+  // @Get(":id")
+  // async findEventById(@Param("id") eventId: string): Promise<Event | null> {
+  //   console.log("EventController: findEventById");
+  //   return this.eventService.findEventById(eventId);
+  // }
+
+  @ApiOperation({ summary: "Sync Google Calendar with App" })
+  @Post("sync")
+  async syncEvents(@GetUser() { sub }: JwtPayLoad) {
+    const events = await this.eventService.syncUserEventsWithGoogleCalendar(sub);
+    return { events };
   }
 
-  @Public()
+  @ApiOperation({ summary: "Create personal event" })
   @Post()
-  async createEvent(@Body() eventData: CreateEventDto) {
-    console.log("EventController: createEvent");
-    return this.eventService.createEvent(eventData);
+  async createPersonalEvent(@GetUser() { sub }: JwtPayLoad, @Body() eventData: CreatePersonalEventDto) {
+    return this.eventService.createEvent(sub, eventData);
   }
 
-  @Public()
-  @Get(":id")
-  async findEventById(@Param("id") eventId: string): Promise<Event | null> {
-    console.log("EventController: findEventById");
-    return this.eventService.findEventById(eventId);
+  @ApiOperation({ summary: "Get all user events(currently no filter)" })
+  @ApiOkResponse({ description: "Get all user events succesfully", type: GetMeOkResponseDto })
+  @Get("getme")
+  async getAllUserEvents(@GetUser() { sub }: JwtPayLoad) {
+    const res = await this.eventService.getAllUserEvents(sub);
+    return { events: res };
   }
 
-  @Public()
-  @Get()
+  @ApiOperation({ summary: "Get all group events" })
+  @Get("getgroup")
+  async getAllGroupEvents(@GetUser() { sub }: JwtPayLoad, @Query() { group_id }: getAllGroupEventsDto) {
+    const res = await this.eventService.getAllGroupEvents(sub, group_id);
+    return { events: res };
+  }
+
+  @ApiOperation({ summary: "Get all events" })
+  @Get("getall")
   async getAllEvents() {
-    console.log("EventController: getAllEvents");
-    return this.eventService.getAllEvents();
+    const res = await this.eventService.getAllEvents();
+    return { events: res };
   }
 
-  @Public()
   @Put(":id")
-  async updateEvent(@Param("id") eventId: string, @Body() eventData: UpdateEventDto): Promise<Event> {
-    return this.eventService.updateEvent(eventId, eventData);
+  async updateEvent(@GetUser() { sub }: JwtPayLoad, @Param("id") eventId: string, @Body() eventData: UpdateEventDto) {
+    return this.eventService.updateEvent(sub, eventId, eventData);
   }
 
-  @Public()
   @Delete(":id")
-  async deleteEvent(@Param("id") eventId: string): Promise<Event> {
-    return this.eventService.deleteEvent(eventId);
+  async deleteEvent(@GetUser() { sub }: JwtPayLoad, @Param("id") eventId: string): Promise<Event> {
+    return this.eventService.deleteEvent(sub, eventId);
   }
 }

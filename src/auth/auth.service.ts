@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import axios from "axios";
@@ -30,12 +30,15 @@ export class AuthService {
     });
   }
 
-  async addUser(payload: TokenPayload) {
+  async addUser(payload: TokenPayload, calendar_refresh_token: string) {
     const { email, family_name, given_name, picture, hd, name, email_verified } = payload;
 
     const user = await this.isEmailExist(email);
 
-    if (user) return user;
+    if (user) {
+      await this.prisma.user.update({ where: { id: user.id }, data: { calendar_refresh_token } });
+      return user;
+    }
 
     const newUser = await this.prisma.user.create({
       data: {
@@ -51,8 +54,9 @@ export class AuthService {
             name: "IndiGroup",
             numMember: 1,
             ownerId: undefined, // Placeholder to be updated after user creation
-          }
-        }
+          },
+        },
+        calendar_refresh_token,
       },
     });
 
@@ -64,28 +68,28 @@ export class AuthService {
     return newUser;
   }
 
-  async verifyGoogleOneTap(credential: string) {
-    try {
-      const ticket = await this.oauth2Client.verifyIdToken({
-        idToken: credential,
-        audience: this.config.get("GOOGLE_CLIENT_ID"),
-      });
-      const payload = ticket.getPayload();
-      const user = await this.addUser(payload);
+  // async verifyGoogleOneTap(credential: string) {
+  //   try {
+  //     const ticket = await this.oauth2Client.verifyIdToken({
+  //       idToken: credential,
+  //       audience: this.config.get("GOOGLE_CLIENT_ID"),
+  //     });
+  //     const payload = ticket.getPayload();
+  //     const user = await this.addUser(payload);
 
-      const [access_token, refresh_token] = await Promise.all([
-        this.signAccessToken(payload.email),
-        this.signRefreshToken(payload.email),
-      ]);
+  //     const [access_token, refresh_token] = await Promise.all([
+  //       this.signAccessToken(payload.email),
+  //       this.signRefreshToken(payload.email),
+  //     ]);
 
-      return {
-        ...user,
-      };
-    } catch (error) {
-      console.log(error);
-      throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
-    }
-  }
+  //     return {
+  //       ...user,
+  //     };
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
+  //   }
+  // }
   // async verifyGoogleOauth(code: string) {
   //   try {
   //     const response = await axios.get("https://www.googleapis.com/oauth2/v1/userinfo", {
@@ -120,19 +124,28 @@ export class AuthService {
       };
 
       const ticket = await this.oauth2Client.verifyIdToken(options);
-      
+      const calendar_refresh_token = tokens.refresh_token;
 
-      const { email, family_name, given_name, picture, hd, name, email_verified } = ticket.getPayload();
-      return { email, family_name, given_name, picture, hd, name, email_verified };
+      if (!calendar_refresh_token) throw new BadRequestException("No calendar refresh token");
+
+      const payload = ticket.getPayload();
+      const { email, family_name, given_name, picture, hd, name, email_verified } = payload;
+
+      const user = await this.addUser(payload, calendar_refresh_token);
+      const [access_token, refresh_token] = await Promise.all([
+        this.signAccessToken(user.id, payload.email),
+        this.signRefreshToken(user.id, payload.email),
+      ]);
+      return { email, family_name, given_name, picture, hd, name, email_verified, access_token, refresh_token };
     } catch (error) {
       console.log(error);
       throw new ForbiddenException(AUTH_MESSAGES.INVALID_CODE);
     }
   }
 
-  async signRefreshToken(email: string) {
+  async signRefreshToken(userId, email: string) {
     const tokenPayload = {
-      sub: "1",
+      sub: userId,
       email,
     } as JwtPayLoad;
 
@@ -152,9 +165,9 @@ export class AuthService {
 
     return refresh_token;
   }
-  async signAccessToken(email: string) {
+  async signAccessToken(userId, email: string) {
     const tokenPayload = {
-      sub: "1",
+      sub: userId,
       email,
     } as JwtPayLoad;
 
@@ -172,7 +185,7 @@ export class AuthService {
         secret: this.config.get<string>("REFRESH_TOKEN_SECRET"),
       })) as JwtPayLoad;
 
-      return this.signAccessToken(payload.email);
+      return this.signAccessToken(payload.sub, payload.email);
     } catch (error) {
       throw new ForbiddenException(AUTH_MESSAGES.INVALID_REFRESH_TOKEN);
     }

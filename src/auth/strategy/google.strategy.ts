@@ -3,6 +3,7 @@ import { Profile, Strategy } from "passport-google-oauth20";
 import { AuthService } from "../auth.service";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { access } from "fs";
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
@@ -14,15 +15,24 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       clientID: config.get("GOOGLE_CLIENT_ID"),
       clientSecret: config.get("GOOGLE_CLIENT_SECRET"),
       callbackURL: config.get("GOOGLE_REDIRECT_URI"),
-      // scope: ["email", "family_name", "given_name"],
-      scope: ["email", "profile"],
+      scope: ["email", "profile", "https://www.googleapis.com/auth/calendar"],
+      accessType: "offline",
+      prompt: "consent",
     });
   }
 
+  authorizationParams(options: any): any {
+    return {
+      ...options,
+      access_type: "offline",
+      prompt: "consent",
+    };
+  }
+
   async validate(accessToken: string, refreshToken: string, profile: Profile) {
-    console.log(accessToken);
-    console.log(refreshToken);
-    console.log(profile);
+    // console.log(accessToken);
+    // console.log(refreshToken);
+    // console.log(profile);
     // const user = await this.authService.validateUser(
     //   profile.emails[0].value,
     //   profile.displayName,

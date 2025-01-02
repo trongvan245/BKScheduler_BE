@@ -1,12 +1,10 @@
 import { Body, Controller, ForbiddenException, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { ApiOperation, ApiTags, ApiBearerAuth } from "@nestjs/swagger";
-import { Public } from "src/common/decorators";
 import { AUTH_MESSAGES } from "src/common/constants";
 import { GoogleAuthGuard } from "./guard";
-import { JwtPayLoad } from "src/common/model";
-import { googleOneTapDto, RefreshTokenDto } from "./dto";
-import axios from "axios";
+import { RefreshTokenDto } from "./dto";
+import { Public } from "src/common/decorators";
 
 @ApiBearerAuth()
 @ApiTags("authenticate")
@@ -26,7 +24,7 @@ export class AuthController {
   @Get("getfreetoken")
   async getToken() {
     const email = "van.bui240504@hcmut.edu.vn";
-    const token = await this.authService.signAccessToken(email);
+    const token = await this.authService.signAccessToken(1, email);
     return { token };
   }
 
@@ -57,19 +55,19 @@ export class AuthController {
     };
   }
 
-  @Public()
-  @Post("google/one-tap")
-  async googleOneTap(@Body() { credential }: googleOneTapDto) {
-    if (!credential) {
-      throw new ForbiddenException(AUTH_MESSAGES.INVALID_ONE_TAP_CODE);
-    }
+  // @Public()
+  // @Post("google/one-tap")
+  // async googleOneTap(@Body() { credential }: googleOneTapDto) {
+  //   if (!credential) {
+  //     throw new ForbiddenException(AUTH_MESSAGES.INVALID_ONE_TAP_CODE);
+  //   }
 
-    const payload = await this.authService.verifyGoogleOneTap(credential);
+  //   const payload = await this.authService.verifyGoogleOneTap(credential);
 
-    return {
-      ...payload,
-    };
-  }
+  //   return {
+  //     ...payload,
+  //   };
+  // }
 
   @ApiOperation({ summary: "Renew Access Token" })
   @Public()
