@@ -48,32 +48,39 @@ export class GoogleCalendarService {
       }[]
     | []
   > {
-    const calendar = await this.getGoogleCalendarClient(userId);
+    try {
+      const calendar = await this.getGoogleCalendarClient(userId);
 
-    const res = await calendar.events.list({
-      calendarId: "primary",
-      // timeMin: new Date().toISOString(),
-      maxResults: 20,
-      singleEvents: true,
-      orderBy: "startTime",
-    });
+      const res = await calendar.events.list({
+        calendarId: "primary",
+        // timeMin: new Date().toISOString(),
+        maxResults: 20,
+        singleEvents: true,
+        orderBy: "startTime",
+      });
 
-    const events = res.data.items.map((event) => {
-      return {
-        id: event.id,
-        summary: event.summary,
-        description: event.description,
-        isComplete: false,
-        type: "google_calendar",
-        priority: 1,
-        createdTime: event.created,
-        startTime: event.start.dateTime,
-        endTime: event.end.dateTime,
-        group_id: null,
-      };
-    });
+      const events = res.data.items.map((event) => {
+        return {
+          id: event.id,
+          summary: event.summary,
+          description: event.description,
+          isComplete: false,
+          type: "google_calendar",
+          priority: 1,
+          createdTime: event.created,
+          startTime: event.start.dateTime,
+          endTime: event.end.dateTime,
+          group_id: null,
+        };
+      });
 
-    return events || [];
+      return events || [];
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        throw new UnauthorizedException("The refresh token has expired or is invalid");
+      }
+      throw error;
+    }
   }
 
   // Create an event
