@@ -7,6 +7,14 @@ export class GroupService {
   constructor(private prismaservice: PrismaService) {}
 
   async createGroup(dto: GroupDto) {
+    const user = await this.prismaservice.user.findUnique({
+      where: {
+        id: dto.ownerID,
+      },
+    });
+
+    if (!user) throw new NotFoundException(`The user ${dto.ownerID} is not existed`);
+
     const group = await this.prismaservice.group.create({
       data: {
         ownerId: dto.ownerID,
@@ -51,6 +59,20 @@ export class GroupService {
   }
 
   async addUserToGroup(userId: string, groupId: string) {
+    const user = await this.prismaservice.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    const group = await this.prismaservice.group.findUnique({
+      where: {
+        id: groupId,
+      },
+    });
+
+    if (!user) throw new NotFoundException(`The user ${userId} is not existed`);
+    if (!group) throw new NotFoundException(`The group ${groupId} is not existed`);
+
     const userGroup = await this.prismaservice.userGroup.findUnique({
       where: {
         user_id_group_id: {
