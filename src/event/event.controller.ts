@@ -58,8 +58,8 @@ export class EventController {
   }
 
   @ApiOperation({ summary: "Get all group events" })
-  @Get("getgroup")
-  async getAllGroupEvents(@GetUser() { sub }: JwtPayLoad, @Query() { group_id }: getAllGroupEventsDto) {
+  @Get("group/:group_id")
+  async getAllGroupEvents(@GetUser() { sub }: JwtPayLoad, @Param("group_id") group_id: string) {
     const res = await this.eventService.getAllGroupEvents(sub, group_id);
     return { events: res };
   }
