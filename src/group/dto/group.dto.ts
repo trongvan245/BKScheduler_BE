@@ -1,10 +1,10 @@
-import { IsDate, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsDate, IsISO8601, IsNotEmpty, IsNumber, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class GroupDto {
   @ApiProperty({
     description: "The ID of the group owner",
-    example: "123e4567-e89b-12d3-a456-426614174000",
+    example: "d28f8f2f-550d-4997-9af9-cfcc0cec625d",
   })
   @IsNotEmpty()
   @IsString()
@@ -12,7 +12,7 @@ export class GroupDto {
 
   @ApiProperty({
     description: "The name of the group. If not provided, it defaults to 'Created by [ownerID] at [createTime]'.",
-    example: "Created by 123e4567-e89b-12d3-a456-426614174000 at 2023-07-15T10:00:00Z",
+    example: "Created by Bui Trong Van",
   })
   @IsNotEmpty()
   @IsString()
@@ -20,11 +20,11 @@ export class GroupDto {
 
   @ApiProperty({
     description: "The time when the group is created",
-    example: "2023-07-15T10:00:00Z",
+    example: new Date(),
   })
-  @IsDate()
+  @IsISO8601()
   @IsNotEmpty()
-  createTime = new Date();
+  createTime: Date
 
   @ApiProperty({
     description: "A brief description of the group",
@@ -48,4 +48,23 @@ export class GroupDto {
       this.name = `Created by ${this.ownerID} at ${this.createTime.toISOString()}`;
     }
   }
+}
+
+
+export class AddUserToGroupDto {
+  @ApiProperty({
+    description: "The ID of the group",
+    example: "6ec60152-4548-4684-858d-bc54bce1983e",
+  })
+  @IsNotEmpty()
+  @IsString()
+  groupId: string;
+
+  @ApiProperty({
+    description: "The ID of the user",
+    example: "e9efd948-ba7c-4800-a5ad-992b1a743886",
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
 }
