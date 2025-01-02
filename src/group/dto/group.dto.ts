@@ -18,13 +18,13 @@ export class GroupDto {
   @IsString()
   name: string;
 
-  @ApiProperty({
-    description: "The time when the group is created",
-    example: new Date(),
-  })
-  @IsISO8601()
-  @IsNotEmpty()
-  createTime: Date
+  // @ApiProperty({
+  //   description: "The time when the group is created",
+  //   example: new Date(),
+  // })
+  // @IsISO8601()
+  // @IsNotEmpty()
+  // createTime: Date
 
   @ApiProperty({
     description: "A brief description of the group",
@@ -33,21 +33,21 @@ export class GroupDto {
   @IsString()
   description: string;
 
-  @ApiProperty({
-    description: "The number of members in the group",
-    example: 1,
-    default: 1,
-  })
-  @IsNumber()
-  @IsNotEmpty()
-  numMember = 1;
+  // @ApiProperty({
+  //   description: "The number of members in the group",
+  //   example: 1,
+  //   default: 1,
+  // })
+  // @IsNumber()
+  // @IsNotEmpty()
+  // numMember = 1;
 
-  constructor() {
-    // Dynamically set the default value for `name` when `ownerID` and `createTime` are available.
-    if (!this.name && this.ownerID && this.createTime) {
-      this.name = `Created by ${this.ownerID} at ${this.createTime.toISOString()}`;
-    }
-  }
+  // constructor() {
+  //   // Dynamically set the default value for `name` when `ownerID` and `createTime` are available.
+  //   if (!this.name && this.ownerID && this.createTime) {
+  //     this.name = `Created by ${this.ownerID} at ${this.createTime.toISOString()}`;
+  //   }
+  // }
 }
 
 

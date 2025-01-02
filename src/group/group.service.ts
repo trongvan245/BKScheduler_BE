@@ -20,8 +20,8 @@ export class GroupService {
         ownerId: dto.ownerID,
         name: dto.name,
         description: dto.description,
-        numMember: dto.numMember,
-        createTime: dto.createTime,
+        // numMember: dto.numMember,
+        // createTime: dto.createTime,
         userGroups: {
           create: {
             User: {
