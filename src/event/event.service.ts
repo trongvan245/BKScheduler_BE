@@ -210,12 +210,11 @@ export class EventService {
       throw new NotFoundException("Event not found.");
     }
 
-    console.log(findEvent);
-
-    const startDate = new Date(findEvent.startTime);
+    const startDate = new Date(data.startTime);
     // startDate.setHours(startDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
-    const endDate = new Date(findEvent.endTime);
+    const endDate = new Date(data.endTime);
+    
     // endDate.setHours(endDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
     const calendarEvent = await this.googleCalendarService.updateEvent(eventId, userId, {
