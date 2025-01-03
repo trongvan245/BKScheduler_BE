@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
 import { GroupService } from "./group.service";
 import { ApiBearerAuth, ApiOperation, ApiProperty, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { AddUserToGroupDto, GroupDto } from "./dto";
@@ -19,8 +30,9 @@ export class GroupController {
 
   @ApiOperation({ summary: "Add an user to a group" })
   @Post("add")
-  async addUserToGroup(@Body() { groupId, userId }: AddUserToGroupDto) {
-    return this.groupservice.addUserToGroup(userId, groupId);
+  async addUserToGroup(@Body() { groupId, email }: AddUserToGroupDto) {
+    const res = await this.groupservice.addUserToGroup(email, groupId);
+    return res;
   }
 
   @ApiOperation({ summary: "Remove an user from a group" })

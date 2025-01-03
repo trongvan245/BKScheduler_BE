@@ -58,7 +58,7 @@ export class GroupService {
     });
 
     if (!group) throw new NotFoundException("The group is not existed");
-    const users = group.userGroups.map(userGroup => userGroup.User);
+    const users = group.userGroups.map((userGroup) => userGroup.User);
     const flattenedGroup = {
       ...group,
       users,
@@ -67,10 +67,10 @@ export class GroupService {
     return flattenedGroup;
   }
 
-  async addUserToGroup(userId: string, groupId: string) {
+  async addUserToGroup(email: string, groupId: string) {
     const user = await this.prismaservice.user.findUnique({
       where: {
-        id: userId,
+        email,
       },
     });
     const group = await this.prismaservice.group.findUnique({
@@ -79,19 +79,19 @@ export class GroupService {
       },
     });
 
-    if (!user) throw new NotFoundException(`The user ${userId} is not existed`);
+    if (!user) throw new NotFoundException(`The email ${email} is not existed`);
     if (!group) throw new NotFoundException(`The group ${groupId} is not existed`);
 
     const userGroup = await this.prismaservice.userGroup.findUnique({
       where: {
         user_id_group_id: {
-          user_id: userId,
+          user_id: user.id,
           group_id: groupId,
         },
       },
     });
 
-    if (userGroup) throw new ForbiddenException(`The user ${userId} is existed in the group ${groupId}`);
+    if (userGroup) throw new ForbiddenException(`The user ${user.name} is existed in the group ${groupId}`);
 
     const newUserGroup = await this.prismaservice.userGroup.create({
       data: {
@@ -102,15 +102,15 @@ export class GroupService {
         },
         User: {
           connect: {
-            id: userId,
+            id: user.id,
           },
         },
       },
     });
 
-    if (!newUserGroup) throw new ForbiddenException(`Cannot add the user ${userId} to the group ${groupId}`);
+    if (!newUserGroup) throw new ForbiddenException(`Cannot add the user ${user.name} to the group ${groupId}`);
 
-    return newUserGroup;
+    return user;
   }
 
   async removeUserFromGroup(userId: string, groupId: string) {

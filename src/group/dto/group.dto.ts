@@ -1,4 +1,4 @@
-import { IsDate, IsISO8601, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsDate, IsEmail, IsISO8601, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class GroupDto {
@@ -60,11 +60,20 @@ export class AddUserToGroupDto {
   @IsString()
   groupId: string;
 
+  // @ApiProperty({
+  //   description: "The ID of the user",
+  //   example: "e9efd948-ba7c-4800-a5ad-992b1a743886",
+  // })
+  // @IsString()
+  // @IsOptional()
+  // userId: string;
+
   @ApiProperty({
-    description: "The ID of the user",
-    example: "e9efd948-ba7c-4800-a5ad-992b1a743886",
+    description: "The email of the user",
+    example: "van.bui240504@hcmut.edu.vn"
   })
-  @IsNotEmpty()
   @IsString()
-  userId: string;
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 }
