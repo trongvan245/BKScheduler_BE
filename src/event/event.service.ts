@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { GoogleCalendarService } from "../google-calendar/calendar.service";
-import { CreatePersonalEventDto, UpdateEventDto } from "./dto";
+import { CreateGroupEventDto, CreatePersonalEventDto, UpdateEventDto } from "./dto";
 
 interface GoogleEvent {
   id: string;
@@ -49,7 +49,7 @@ export class EventService {
             startTime: event.startTime,
             endTime: event.endTime,
             isComplete: false,
-            type: "google_calendar",
+            type: "EVENT", //TODO: change to null
             priority: 1,
           },
         });
@@ -64,12 +64,10 @@ export class EventService {
     return { message: "Synced successfully" };
   }
 
-  async createEvent(userId: string, data: CreatePersonalEventDto) {
+  async createEvent(userId: string, groupID: string, data: CreatePersonalEventDto) {
     const startDate = new Date(data.startTime);
-    // startDate.setHours(startDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
     const endDate = new Date(data.endTime);
-    // endDate.setHours(endDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
     const calendarEvent = await this.googleCalendarService.createEvent(
       {
@@ -97,11 +95,56 @@ export class EventService {
         isComplete: data.isComplete,
         type: data.type,
         priority: data.priority,
-        group_id: data.group_id, // Include group_id in the create query
+        group_id: groupID, // Include group_id in the create query
       },
     });
 
     return webEvent;
+  }
+
+  async createPersonalEvent(userId: string, data: CreatePersonalEventDto) {
+    const { indiGroupId } = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        indiGroupId: true,
+      },
+    });
+    const event = await this.createEvent(userId, indiGroupId, data);
+    return event;
+  }
+
+  async createGroupEvent(userId: string, data: CreateGroupEventDto) {
+    const group = await this.prisma.group.findMany({
+      where: {
+        id: data.group_id,
+      },
+    });
+
+    if (!group) throw new NotFoundException("Group not found.");
+
+    const users = await this.prisma.userGroup.findMany({
+      where: {
+        group_id: data.group_id,
+      },
+      select: {
+        User: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    const usersEvent = await Promise.all(
+      users.map(async (user) => {
+        const event = await this.createEvent(user.User.id, data.group_id, data);
+        return event;
+      }),
+    );
+
+    return usersEvent;
   }
 
   async getAllEvents() {
@@ -214,7 +257,7 @@ export class EventService {
     // startDate.setHours(startDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
     const endDate = new Date(data.endTime);
-    
+
     // endDate.setHours(endDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
     const calendarEvent = await this.googleCalendarService.updateEvent(eventId, userId, {
