@@ -37,8 +37,9 @@ export class GroupController {
 
   @ApiOperation({ summary: "Remove an user from a group" })
   @Put("remove")
-  async removeUserFromGroup(@Body("groupId") groupId: string, @Body("userId") userId: string) {
-    return this.groupservice.removeUserFromGroup(userId, groupId);
+  async removeUserFromGroup(@Body() { groupId, email }: AddUserToGroupDto) {
+    const res = await this.groupservice.removeUserFromGroup(email, groupId);
+    return res;
   }
 
   @ApiOperation({ summary: "Get all groups of user" })
