@@ -1,6 +1,8 @@
-import { IsString, IsOptional, IsDate, IsBoolean, IsInt } from "class-validator";
+import { IsString, IsOptional, IsDate, IsBoolean, IsInt, IsEnum } from "class-validator";
 import { Transform } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
+import { EVENT_TYPE } from "@prisma/client";
+import { IsEventType } from "../decorators";
 
 export class UpdateEventDto {
   @ApiProperty({ description: "New Event summary", example: "Diffrent Summary" })
@@ -35,20 +37,21 @@ export class UpdateEventDto {
   @IsOptional()
   isComplete?: boolean;
 
-  @ApiProperty({ example: "event_type" })
+  @ApiProperty({ example: "EVENT" })
+  @IsEventType()
   @IsString()
   @IsOptional()
-  type?: string;
+  type?: EVENT_TYPE;
 
   @ApiProperty({ example: 1 })
   @IsInt()
   @IsOptional()
   priority?: number;
 
-  @ApiProperty({ example: "b4b52058-da82-4e40-b0ea-f672b59a3f1d" })
-  @IsString()
-  @IsOptional()
-  group_id?: string;
+  // @ApiProperty({ example: "b4b52058-da82-4e40-b0ea-f672b59a3f1d" })
+  // @IsString()
+  // @IsOptional()
+  // group_id?: string;
 
   // @ApiProperty({ example: "event_type" })
   // @IsString()

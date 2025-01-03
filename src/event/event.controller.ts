@@ -3,7 +3,7 @@ import { EventService } from "./event.service";
 import { Event } from "@prisma/client";
 import { GetUser, Public } from "src/common/decorators";
 import { JwtPayLoad } from "src/common/model";
-import { CreatePersonalEventDto, getAllGroupEventsDto, UpdateEventDto } from "./dto";
+import { CreateGroupEventDto, CreatePersonalEventDto, getAllGroupEventsDto, UpdateEventDto } from "./dto";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { GetMeOkResponseDto } from "./dto/response.dto";
 
@@ -46,7 +46,13 @@ export class EventController {
   @ApiOperation({ summary: "Create personal event" })
   @Post()
   async createPersonalEvent(@GetUser() { sub }: JwtPayLoad, @Body() eventData: CreatePersonalEventDto) {
-    return this.eventService.createEvent(sub, eventData);
+    return this.eventService.createPersonalEvent(sub, eventData);
+  }
+
+  @ApiOperation({ summary: "Create group event" })
+  @Post('group')
+  async createGrouplEvent(@GetUser() { sub }: JwtPayLoad, @Body() eventData: CreateGroupEventDto) {
+    return this.eventService.createGroupEvent(sub, eventData);
   }
 
   @ApiOperation({ summary: "Get all user events(currently no filter)" })
@@ -58,8 +64,8 @@ export class EventController {
   }
 
   @ApiOperation({ summary: "Get all group events" })
-  @Get("getgroup")
-  async getAllGroupEvents(@GetUser() { sub }: JwtPayLoad, @Query() { group_id }: getAllGroupEventsDto) {
+  @Get("group/:group_id")
+  async getAllGroupEvents(@GetUser() { sub }: JwtPayLoad, @Param("group_id") group_id: string) {
     const res = await this.eventService.getAllGroupEvents(sub, group_id);
     return { events: res };
   }

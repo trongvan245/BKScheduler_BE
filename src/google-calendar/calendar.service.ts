@@ -85,8 +85,10 @@ export class GoogleCalendarService {
 
   // Create an event
   async createEvent(eventData: calendar_v3.Schema$Event, userId: string): Promise<calendar_v3.Schema$Event> {
+    //add guest
     const calendar = await this.getGoogleCalendarClient(userId);
 
+    
     const res = await calendar.events.insert({
       calendarId: "primary",
       requestBody: eventData,
@@ -102,7 +104,6 @@ export class GoogleCalendarService {
     eventData: calendar_v3.Schema$Event,
   ): Promise<calendar_v3.Schema$Event> {
     const calendar = await this.getGoogleCalendarClient(userId);
-
     const res = await calendar.events.patch({
       calendarId: "primary",
       eventId,

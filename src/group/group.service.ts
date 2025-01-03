@@ -6,27 +6,27 @@ import { GroupDto } from "./dto";
 export class GroupService {
   constructor(private prismaservice: PrismaService) {}
 
-  async createGroup(dto: GroupDto) {
+  async createGroup(userId: string, dto: GroupDto) {
     const user = await this.prismaservice.user.findUnique({
       where: {
-        id: dto.ownerID,
+        id: userId,
       },
     });
 
-    if (!user) throw new NotFoundException(`The user ${dto.ownerID} is not existed`);
+    if (!user) throw new NotFoundException(`The user ${userId} is not existed`);
 
     const group = await this.prismaservice.group.create({
       data: {
-        ownerId: dto.ownerID,
+        ownerId: userId,
         name: dto.name,
         description: dto.description,
-        numMember: dto.numMember,
-        createTime: dto.createTime,
+        numMember: 1,
+        // createTime: dto.createTime,
         userGroups: {
           create: {
             User: {
               connect: {
-                id: dto.ownerID,
+                id: userId,
               },
             },
           },
@@ -43,25 +43,34 @@ export class GroupService {
     const group = await this.prismaservice.group.findUnique({
       where: { id },
       include: {
-        User: {
+        userGroups: {
           select: {
-            id: true,
-            email: true,
-            name: true,
+            User: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+              },
+            },
           },
         },
       },
     });
 
     if (!group) throw new NotFoundException("The group is not existed");
-
-    return group;
+    const users = group.userGroups.map((userGroup) => userGroup.User);
+    const flattenedGroup = {
+      ...group,
+      users,
+    };
+    delete flattenedGroup.userGroups;
+    return flattenedGroup;
   }
 
-  async addUserToGroup(userId: string, groupId: string) {
+  async addUserToGroup(email: string, groupId: string) {
     const user = await this.prismaservice.user.findUnique({
       where: {
-        id: userId,
+        email,
       },
     });
     const group = await this.prismaservice.group.findUnique({
@@ -70,19 +79,19 @@ export class GroupService {
       },
     });
 
-    if (!user) throw new NotFoundException(`The user ${userId} is not existed`);
+    if (!user) throw new NotFoundException(`The email ${email} is not existed`);
     if (!group) throw new NotFoundException(`The group ${groupId} is not existed`);
 
     const userGroup = await this.prismaservice.userGroup.findUnique({
       where: {
         user_id_group_id: {
-          user_id: userId,
+          user_id: user.id,
           group_id: groupId,
         },
       },
     });
 
-    if (userGroup) throw new ForbiddenException(`The user ${userId} is existed in the group ${groupId}`);
+    if (userGroup) throw new ForbiddenException(`The user ${user.name} is existed in the group ${groupId}`);
 
     const newUserGroup = await this.prismaservice.userGroup.create({
       data: {
@@ -93,43 +102,69 @@ export class GroupService {
         },
         User: {
           connect: {
-            id: userId,
+            id: user.id,
           },
         },
       },
     });
+    
 
-    if (!newUserGroup) throw new ForbiddenException(`Cannot add the user ${userId} to the group ${groupId}`);
+    if (!newUserGroup) throw new ForbiddenException(`Cannot add the user ${user.name} to the group ${groupId}`);
 
-    return newUserGroup;
+    await this.prismaservice.group.update({
+      where: {
+        id: groupId,
+      },
+      data: {
+        numMember: {
+          increment: 1,
+        },
+      },
+    });
+    
+    return user;
   }
 
-  async removeUserFromGroup(userId: string, groupId: string) {
+  async removeUserFromGroup(email: string, groupId: string) {
+    const user = await this.prismaservice.user.findUnique({
+      where: {
+        email,
+      },
+    });
+    const group = await this.prismaservice.group.findUnique({
+      where: {
+        id: groupId,
+      },
+    });
+
+    if (!user) throw new NotFoundException(`The email ${email} is not existed`);
+    if (!group) throw new NotFoundException(`The group ${groupId} is not existed`);
+
     const userGroup = await this.prismaservice.userGroup.findUnique({
       where: {
         user_id_group_id: {
-          user_id: userId,
+          user_id: user.id,
           group_id: groupId,
         },
       },
     });
 
-    if (!userGroup) throw new ForbiddenException(`The user ${userId} doesn't join in the group ${groupId}`);
+    if (!userGroup) throw new ForbiddenException(`The user ${user.name} doesn't join in the group ${groupId}`);
 
     await this.prismaservice.userGroup.delete({
       where: {
         user_id_group_id: {
-          user_id: userId,
+          user_id: user.id,
           group_id: groupId,
         },
       },
     });
 
-    return userGroup;
+    return user;
   }
 
   async findUserGroups(userId: string) {
-    const groups=  await this.prismaservice.userGroup.findMany({
+    const groups = await this.prismaservice.userGroup.findMany({
       where: {
         user_id: userId,
       },
@@ -140,7 +175,7 @@ export class GroupService {
 
     const filtedGroups = groups.map((group) => group.Group);
 
-    return filtedGroups
+    return filtedGroups;
   }
 
   async getAllGroups() {
