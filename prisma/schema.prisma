@@ -71,6 +71,8 @@ model Event {
   group_id         String?   @db.Uuid
   summary          String?
   group            Group?    @relation(fields: [group_id], references: [id], onDelete: Cascade)
+
+  ownerId          String?    @db.Uuid 
 }
 
 model Message {
