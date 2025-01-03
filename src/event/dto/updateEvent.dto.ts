@@ -48,10 +48,10 @@ export class UpdateEventDto {
   @IsOptional()
   priority?: number;
 
-  @ApiProperty({ example: "b4b52058-da82-4e40-b0ea-f672b59a3f1d" })
-  @IsString()
-  @IsOptional()
-  group_id?: string;
+  // @ApiProperty({ example: "b4b52058-da82-4e40-b0ea-f672b59a3f1d" })
+  // @IsString()
+  // @IsOptional()
+  // group_id?: string;
 
   // @ApiProperty({ example: "event_type" })
   // @IsString()

@@ -4,7 +4,8 @@ import { ApiOperation, ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { AUTH_MESSAGES } from "src/common/constants";
 import { GoogleAuthGuard } from "./guard";
 import { RefreshTokenDto } from "./dto";
-import { Public } from "src/common/decorators";
+import { GetUser, Public } from "src/common/decorators";
+import { JwtPayLoad } from "src/common/model";
 
 @ApiBearerAuth()
 @ApiTags("authenticate")
@@ -82,5 +83,12 @@ export class AuthController {
       msg: "Success",
       access_token,
     };
+  }
+
+  @ApiOperation({ summary: "Get User Info" })
+  @Get("me")
+  async me(@GetUser() { sub }: JwtPayLoad) {
+    const user = await this.authService.getUserInfo(sub);
+    return { user };
   }
 }

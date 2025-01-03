@@ -107,9 +107,21 @@ export class GroupService {
         },
       },
     });
+    
 
     if (!newUserGroup) throw new ForbiddenException(`Cannot add the user ${user.name} to the group ${groupId}`);
 
+    await this.prismaservice.group.update({
+      where: {
+        id: groupId,
+      },
+      data: {
+        numMember: {
+          increment: 1,
+        },
+      },
+    });
+    
     return user;
   }
 

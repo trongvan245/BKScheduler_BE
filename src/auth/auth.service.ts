@@ -190,4 +190,12 @@ export class AuthService {
       throw new ForbiddenException(AUTH_MESSAGES.INVALID_REFRESH_TOKEN);
     }
   }
+
+  async getUserInfo(sub: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        id: sub,
+      },
+    });
+  }
 }

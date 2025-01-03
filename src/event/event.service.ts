@@ -64,10 +64,17 @@ export class EventService {
     return { message: "Synced successfully" };
   }
 
-  async createEvent(userId: string, groupID: string, data: CreatePersonalEventDto) {
+  async createEvent(
+    userId: string,
+    groupID: string,
+    data: CreatePersonalEventDto,
+    users: { email: string; id: string }[] = [],
+  ) {
     const startDate = new Date(data.startTime);
 
     const endDate = new Date(data.endTime);
+
+    const attendees = users.filter((user) => user.id !== userId).map((user) => ({ email: user.email }));
 
     const calendarEvent = await this.googleCalendarService.createEvent(
       {
@@ -81,6 +88,7 @@ export class EventService {
           dateTime: endDate.toISOString(),
           timeZone: "Asia/Ho_Chi_Minh",
         },
+        attendees,
       },
       userId,
     );
@@ -96,6 +104,7 @@ export class EventService {
         type: data.type,
         priority: data.priority,
         group_id: groupID, // Include group_id in the create query
+        ownerId: userId,
       },
     });
 
@@ -116,7 +125,7 @@ export class EventService {
   }
 
   async createGroupEvent(userId: string, data: CreateGroupEventDto) {
-    const group = await this.prisma.group.findMany({
+    const group = await this.prisma.group.findFirst({
       where: {
         id: data.group_id,
       },
@@ -132,31 +141,28 @@ export class EventService {
         User: {
           select: {
             id: true,
+            email: true,
           },
         },
       },
     });
 
-    const usersEvent = await Promise.all(
-      users.map(async (user) => {
-        const event = await this.createEvent(user.User.id, data.group_id, data);
-        return event;
-      }),
-    );
+    const flattenedUsers = users.map((user) => user.User);
 
-    return usersEvent;
+    const event = await this.createEvent(userId, data.group_id, data, flattenedUsers);
+    return event;
   }
 
   async getAllEvents() {
     const events = await this.prisma.event.findMany();
     // Sort events by startTime
-    events.sort((a, b) => {
+    events.sort((b, a) => {
       return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
     });
     return events;
   }
   async getAllUserEvents(user_id: string) {
-    //toi uu truy van bang cach dat event co user_id tu dau
+    //TODO: toi uu truy van bang cach dat event co user_id tu dau
     const user = await this.prisma.user.findUnique({
       where: {
         id: user_id,
@@ -254,11 +260,8 @@ export class EventService {
     }
 
     const startDate = new Date(data.startTime);
-    // startDate.setHours(startDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
     const endDate = new Date(data.endTime);
-
-    // endDate.setHours(endDate.getHours() - 7); // Adjust UTC to Ho Chi Minh
 
     const calendarEvent = await this.googleCalendarService.updateEvent(eventId, userId, {
       summary: data.summary,
@@ -285,7 +288,6 @@ export class EventService {
         isComplete: data.isComplete,
         type: data.type,
         priority: data.priority,
-        group_id: data.group_id,
       },
     });
 
