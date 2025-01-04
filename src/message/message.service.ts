@@ -7,8 +7,9 @@ export class MessageService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getMessages(userId: string): Promise<MessageHistory[]> {
+    console.log(userId);
     return this.prisma.message.findMany({
-      where: { userId },
+      where: { userId: userId },
       orderBy: { createTime: "desc" },
     });
   }

@@ -71,56 +71,55 @@ export class EventService {
     users: { email: string; id: string }[] = [],
   ) {
     const startDate = new Date(data.startTime);
-
     const endDate = new Date(data.endTime);
-
+  
     const attendees = users.filter((user) => user.id !== userId).map((user) => ({ email: user.email }));
-
+  
     const calendarEvent = await this.googleCalendarService.createEvent(
       {
         summary: data.summary,
         description: data.description,
         start: {
           dateTime: startDate.toISOString(),
-          // timeZone: "Asia/Ho_Chi_Minh",
+          timeZone: "Asia/Ho_Chi_Minh", // Bỏ comment
         },
         end: {
           dateTime: endDate.toISOString(),
-          // timeZone: "Asia/Ho_Chi_Minh",
+          timeZone: "Asia/Ho_Chi_Minh", // Bỏ comment
         },
         attendees,
-        recurrence: data.isRecurring ? ["RRULE:FREQ=DAILY;COUNT=1"] : null,
-        status: data.isComplete ? "confirmed" : "tentative",
+        recurrence: data.isRecurring ? ["RRULE:FREQ=DAILY;COUNT=1"] : null, // Cần xử lý logic cho recurrence
+        status: "confirmed", // Xem xét lại logic isComplete và status
         extendedProperties: {
           private: {
             type: data.type || "EVENT",
-            priority: data.priority ? data.priority.toString() : "1",
+            priority: data.priority ? data.priority.toString() : "1", // Nên xem xét lại
           },
         },
       },
       userId,
     );
-
+  
     const webEvent = await this.prisma.event.create({
       data: {
         id: calendarEvent.id,
         summary: data.summary,
         description: data.description,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        isComplete: data.isComplete,
+        startTime: startDate, // Sử dụng Date object
+        endTime: endDate, // Sử dụng Date object
+        isComplete: data.isComplete, // Nên xem xét lại
         type: data.type,
         priority: data.priority,
-        group_id: groupID, // Include group_id in the create query
+        group_id: groupID,
         ownerId: userId,
       },
     });
-
+  
     return webEvent;
   }
 
   async createPersonalEvent(userId: string, data: CreatePersonalEventDto) {
-    const { indiGroupId } = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -128,7 +127,16 @@ export class EventService {
         indiGroupId: true,
       },
     });
-    const event = await this.createEvent(userId, indiGroupId, data);
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} not found.`);
+    }
+
+    if (!user.indiGroupId) {
+      throw new BadRequestException(`User with id ${userId} does not have indiGroupId.`);
+    }
+
+    const event = await this.createEvent(userId, user.indiGroupId, data);
     return event;
   }
 

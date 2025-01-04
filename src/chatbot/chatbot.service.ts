@@ -16,13 +16,13 @@ export class ChatbotService {
     private readonly retryService: RetryService,
   ) {}
 
-  async processRequest(userId: string, request: ChatRequest): Promise<ChatResponse> {
+  async processRequest(request: ChatRequest): Promise<ChatResponse> {
     try {
-      const analyzeRequest = await this.analyzeRequest(userId, request.message);
-
+      const analyzeRequest = await this.analyzeRequest(request.userId, request.message);
+      console.log(analyzeRequest);
       let serviceResponse;
       if (analyzeRequest.requestType !== "unknown") {
-        serviceResponse = await this.retryService.executeWithRetry(() => this.handleRequest(userId, analyzeRequest));
+        serviceResponse = await this.retryService.executeWithRetry(() => this.handleRequest(request.userId, analyzeRequest));
       }
 
       const response = await this.generateResponse(analyzeRequest, serviceResponse);
@@ -81,7 +81,8 @@ export class ChatbotService {
     });
 
     return {
-      message: llmResponse
+      message: llmResponse,
+      status: "success"
     };
   }
 }

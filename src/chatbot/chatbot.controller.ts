@@ -11,25 +11,26 @@ export class ChatbotController {
   @UseGuards(AuthGuard('jwt'))
   async handleMessage(
     @Body() request: ChatRequest,
-    @Body() userId: string
   ): Promise<ChatResponse> {
-    return this.chatbotService.processRequest(userId, request);
+    return this.chatbotService.processRequest(request);
   }
 
   @Get()
   @UseGuards(AuthGuard('jwt'))
   async getMessage(
-    @Body() userId: string
+    @Body() body: { userId: string } // Chỉ định kiểu body là một object
   ): Promise<MessageHistory[]> {
-    return this.chatbotService.getMessage(userId);
+    return this.chatbotService.getMessage(body.userId); // Lấy userId từ object
   }
+  
 
   @Post('delete')
   @UseGuards(AuthGuard('jwt'))
   async deleteMessage(
-    @Body() userId: string,
-    @Body() messageId: string
+    @Body() body: { userId: string; messageId: string }
   ): Promise<any> {
+    const { userId, messageId } = body; // Trích xuất các giá trị từ body
     return this.chatbotService.deleteMessage(userId, messageId);
   }
+  
 }

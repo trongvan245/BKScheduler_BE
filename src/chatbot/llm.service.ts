@@ -60,10 +60,25 @@ export class LLMService {
     let action = "unknown";
     let data: any = {};
 
+    const now = new Date();
+    const currentDate = now.toISOString().slice(0, 10); // YYYY-MM-DD
+    const currentTime = now.toISOString().slice(11, 19); // HH:mm:ss
+    const currentTimeISO = now.toISOString(); // YYYY-MM-DDTHH:mm:ssZ
+
+    // Tạo biến time
+    const time = {
+      currentDate: currentDate,
+      currentTime: currentTime,
+      currentTimeISO: currentTimeISO,
+    };
+
     if (requestType === "action") {
       // Bước 3.1.1: Phân tích yêu cầu action
+      domain = "event";
       const actionPrompt = `
       Bạn là một trợ lý quản lý lịch trình thông minh, có khả năng tích hợp với Google Calendar. Hãy phân tích tin nhắn sau:
+
+Thời gian hiện tại: ${JSON.stringify(time)}
 
 Tin nhắn: "${cleanedMessage}"
 
@@ -83,15 +98,15 @@ Các hành động (action) bạn có thể hiểu:
 - createPersonalEvent: Tạo sự kiện cá nhân mới trên Google Calendar. Tham số:
     - 'summary' (string, bắt buộc): Tiêu đề của sự kiện.
     - 'description' (string, không bắt buộc): Mô tả sự kiện.
-    - 'startTime' (string, bắt buộc): Thời gian bắt đầu sự kiện (YYYY-MM-DDTHH:mm:ss).
-    - 'endTime' (string, bắt buộc): Thời gian kết thúc sự kiện (YYYY-MM-DDTHH:mm:ss).
+    - 'startTime' (string, bắt buộc): Thời gian bắt đầu sự kiện (YYYY-MM-DDTHH:mm:ss). Nếu người dùng cung cấp thời gian tương đối như "sáng mai", "tuần sau", bạn cần chuyển đổi sang định dạng này dựa trên thời gian hiện tại.
+    - 'endTime' (string, bắt buộc): Thời gian kết thúc sự kiện (YYYY-MM-DDTHH:mm:ss). Nếu người dùng cung cấp thời gian tương đối như "sáng mai", "tuần sau", bạn cần chuyển đổi sang định dạng này dựa trên thời gian hiện tại.
     - 'type' (string, không bắt buộc):  Loại sự kiện (ví dụ: meeting, outOfOffice,... Nếu không cung cấp, mặc định là 'event').
     - 'priority' (number, không bắt buộc): Độ ưu tiên của sự kiện (1->9).
 - createGroupEvent: Tạo sự kiện nhóm mới trên Google Calendar. Tham số:
     - 'summary' (string, bắt buộc): Tiêu đề của sự kiện.
     - 'description' (string, không bắt buộc): Mô tả sự kiện.
-    - 'startTime' (string, bắt buộc): Thời gian bắt đầu sự kiện (YYYY-MM-DDTHH:mm:ss).
-    - 'endTime' (string, bắt buộc): Thời gian kết thúc sự kiện (YYYY-MM-DDTHH:mm:ss).
+    - 'startTime' (string, bắt buộc): Thời gian bắt đầu sự kiện (YYYY-MM-DDTHH:mm:ss). Nếu người dùng cung cấp thời gian tương đối như "sáng mai", "tuần sau", bạn cần chuyển đổi sang định dạng này dựa trên thời gian hiện tại.
+    - 'endTime' (string, bắt buộc): Thời gian kết thúc sự kiện (YYYY-MM-DDTHH:mm:ss). Nếu người dùng cung cấp thời gian tương đối như "sáng mai", "tuần sau", bạn cần chuyển đổi sang định dạng này dựa trên thời gian hiện tại.
     - 'type' (string, không bắt buộc): Loại sự kiện.
     - 'priority' (number, không bắt buộc): Độ ưu tiên của sự kiện.
     - 'groupId' (string, bắt buộc): ID của nhóm.
@@ -99,8 +114,8 @@ Các hành động (action) bạn có thể hiểu:
     - 'eventId' (string, bắt buộc): ID của sự kiện cần cập nhật.
     - 'summary' (string, không bắt buộc): Tiêu đề mới của sự kiện.
     - 'description' (string, không bắt buộc): Mô tả mới của sự kiện.
-    - 'startTime' (string, không bắt buộc): Thời gian bắt đầu mới của sự kiện (YYYY-MM-DDTHH:mm:ss).
-    - 'endTime' (string, không bắt buộc): Thời gian kết thúc mới của sự kiện (YYYY-MM-DDTHH:mm:ss).
+    - 'startTime' (string, không bắt buộc): Thời gian bắt đầu mới của sự kiện (YYYY-MM-DDTHH:mm:ss). Nếu người dùng cung cấp thời gian tương đối như "sáng mai", "tuần sau", bạn cần chuyển đổi sang định dạng này dựa trên thời gian hiện tại.
+    - 'endTime' (string, không bắt buộc): Thời gian kết thúc mới của sự kiện (YYYY-MM-DDTHH:mm:ss). Nếu người dùng cung cấp thời gian tương đối như "sáng mai", "tuần sau", bạn cần chuyển đổi sang định dạng này dựa trên thời gian hiện tại.
     - 'type' (string, không bắt buộc): Loại sự kiện mới.
     - 'priority' (number, không bắt buộc): Độ ưu tiên mới của sự kiện.
 - delete: Xóa một sự kiện trên Google Calendar. Tham số:
@@ -133,8 +148,11 @@ Các hành động (action) bạn có thể hiểu:
       }
     } else if (requestType === "query") {
       // Bước 3.2.1: Phân tích yêu cầu query
+      domain = "event";
       const queryPrompt = `
       Bạn là một trợ lý quản lý lịch trình thông minh, có khả năng tích hợp với Google Calendar. Hãy phân tích tin nhắn sau:
+
+Thời gian hiện tại: ${JSON.stringify(time)}
 
 Tin nhắn: '${cleanedMessage}'
 
@@ -166,8 +184,8 @@ Các hành động (action) bạn có thể hiểu:
   - 'description' (string): Lọc theo mô tả (tìm kiếm gần đúng).
   - 'type' (string): Lọc theo loại sự kiện.
   - 'priority' (number): Lọc theo độ ưu tiên.
-  - 'startTime' (string): Lọc theo thời gian bắt đầu (có thể dùng toán tử so sánh như >=, <=). Ví dụ: 'filter: { startTime: { ">=": "2024-01-01T00:00:00" } }'
-  - 'endTime' (string): Lọc theo thời gian kết thúc (có thể dùng toán tử so sánh).
+  - 'startTime' (string): Lọc theo thời gian bắt đầu (có thể dùng toán tử so sánh như >=, <=). Ví dụ: 'filter: { startTime: { ">=": "2024-01-01T00:00:00" } }'. Nếu người dùng cung cấp thời gian tương đối như "sáng mai", "tuần sau", bạn cần chuyển đổi sang định dạng này dựa trên thời gian hiện tại.
+  - 'endTime' (string): Lọc theo thời gian kết thúc (có thể dùng toán tử so sánh). Nếu người dùng cung cấp thời gian tương đối như "sáng mai", "tuần sau", bạn cần chuyển đổi sang định dạng này dựa trên thời gian hiện tại.
   - 'isComplete' (boolean): Lọc theo trạng thái hoàn thành (true/false).
   - 'createdTime' (string): Lọc theo thời gian tạo (có thể dùng toán tử so sánh).
 - **'sort'**: Dùng để sắp xếp kết quả.
@@ -204,8 +222,11 @@ Các hành động (action) bạn có thể hiểu:
       }
     } else if (requestType === "group") {
       // Bước 3.3.1: Phân tích yêu cầu group
+      domain = "group";
       const groupPrompt = `
       Bạn là một trợ lý AI, có khả năng quản lý các nhóm người dùng. Hãy phân tích tin nhắn sau:
+
+Thời gian hiện tại: ${JSON.stringify(time)}
 
 Tin nhắn: '${cleanedMessage}'
 
