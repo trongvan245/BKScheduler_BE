@@ -18,6 +18,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       scope: ["email", "profile", "https://www.googleapis.com/auth/calendar"],
       accessType: "offline",
       prompt: "consent",
+      hd: "hcmut.edu.vn",
     });
   }
 
