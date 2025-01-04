@@ -82,11 +82,11 @@ export class EventService {
         description: data.description,
         start: {
           dateTime: startDate.toISOString(),
-          timeZone: "Asia/Ho_Chi_Minh",
+          // timeZone: "Asia/Ho_Chi_Minh",
         },
         end: {
           dateTime: endDate.toISOString(),
-          timeZone: "Asia/Ho_Chi_Minh",
+          // timeZone: "Asia/Ho_Chi_Minh",
         },
         attendees,
       },
@@ -268,11 +268,11 @@ export class EventService {
       description: data.description,
       start: {
         dateTime: startDate.toISOString(),
-        timeZone: "Asia/Ho_Chi_Minh",
+        // timeZone: "Asia/Ho_Chi_Minh",
       },
       end: {
         dateTime: endDate.toISOString(),
-        timeZone: "Asia/Ho_Chi_Minh",
+        // timeZone: "Asia/Ho_Chi_Minh",
       },
     });
 
