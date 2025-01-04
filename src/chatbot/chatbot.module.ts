@@ -7,9 +7,10 @@ import { LLMService } from './llm.service';
 import { RetryService } from './retry.service';
 import { EventModule } from '../event/event.module';
 import { MessageModule } from 'src/message/message.module';
+import { GroupModule } from 'src/group/group.module';
 
 @Module({
-  imports: [EventModule, MessageModule],
+  imports: [EventModule, MessageModule, GroupModule],
   controllers: [ChatbotController],
   providers: [
     ChatbotService,

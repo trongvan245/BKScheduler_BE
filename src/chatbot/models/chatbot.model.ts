@@ -1,4 +1,4 @@
-export type RequestType = 'query' | 'action' | 'unknown';
+export type RequestType = "query" | "action" | "group" | "unknown";
 
 export interface ChatRequest {
   userId: string;
@@ -8,7 +8,7 @@ export interface ChatRequest {
 export interface ChatResponse {
   message: string;
   data?: any;
-  status: 'success' | 'error';
+  status?: "success" | "error";
 }
 
 export interface MessageHistory {
@@ -21,8 +21,11 @@ export interface MessageHistory {
 }
 
 export interface MessageAnalysis {
-    message: string;
-    requestType: RequestType;
-    event: string;
-    data?: any;
+  originalMessage: string; // Tin nhắn gốc từ người dùng
+  requestType: RequestType;
+  cleanedMessage: string; // Tin nhắn đã được clean
+  domain: "event" | "group" | "unknown";
+  action: string;
+  data?: any;
+  messageError?: string;
 }

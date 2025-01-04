@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { GroupDto } from "./dto";
 
@@ -181,4 +181,51 @@ export class GroupService {
   async getAllGroups() {
     return await this.prismaservice.group.findMany();
   }
+
+  async chatbotGroupService(userId: string, action: string, data: any) {
+    switch (action) {
+      case "createGroup":
+        if (!data || !data.name) {
+          throw new BadRequestException("Missing group name for createGroup");
+        }
+        return this.createGroup(userId, data);
+      case "findGroupById":
+        if (!data || !data.groupId) {
+          throw new BadRequestException("Missing groupId for findGroupById");
+        }
+        return this.findGroupById(data.groupId);
+      case "addUserToGroup":
+        if (!data || !data.email || !data.groupId) {
+          throw new BadRequestException("Missing email or groupId for addUserToGroup");
+        }
+        return this.addUserToGroup(data.email, data.groupId);
+      case "removeUserFromGroup":
+        if (!data || !data.email || !data.groupId) {
+          throw new BadRequestException("Missing email or groupId for removeUserFromGroup");
+        }
+        return this.removeUserFromGroup(data.email, data.groupId);
+      case "findUserGroups":
+        return this.findUserGroups(userId);
+      case "listAllGroups":
+        return this.getAllGroups();
+      // case "listGroupMembers":
+      //   if (!data || !data.groupId) {
+      //     throw new BadRequestException("Missing groupId for listGroupMembers");
+      //   }
+      //   return this.listGroupMembers(data.groupId);
+      // case "updateGroupInfo":
+      //   if (!data || !data.groupId || !data.groupInfo) {
+      //       throw new BadRequestException("Missing groupId or groupInfo for updateGroupInfo");
+      //   }
+      //   return this.updateGroupInfo(data.groupId, data.groupInfo, userId);
+      // case "deleteGroup":
+      //   if(!data || !data.groupId) {
+      //       throw new BadRequestException("Missing groupId for deleteGroup")
+      //   }
+      //   return this.deleteGroup(data.groupId, userId)
+      default:
+        throw new BadRequestException("Invalid group action");
+    }
+  }
+
 }

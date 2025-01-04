@@ -294,28 +294,57 @@ export class EventService {
     return event;
   }
 
-  async queryEvent(event, data) {
-    switch (event) {
-      case "list":
+  async queryEvent(userId: string, action: string, data?: any) {
+    switch (action) {
+      case "listAll":
         return this.getAllEvents();
-      case "find":
-        return this.findEventById(data.id);
+      case "listUserEvents":
+        if (!data || !userId) {
+          throw new BadRequestException("Missing userId for listUserEvents");
+        }
+        return this.getAllUserEvents(userId);
+      case "listGroupEvents":
+        if (!data || !data.userId || !data.groupId) {
+          throw new BadRequestException("Missing userId or groupId for listGroupEvents");
+        }
+        return this.getAllGroupEvents(userId, data.groupId);
+      case "findById":
+        if (!data || !data.eventId) {
+          throw new BadRequestException("Missing eventId for findById");
+        }
+        return this.findEventById(data.eventId);
       default:
-        return null;
+        throw new BadRequestException("Invalid query action");
     }
   }
 
   //action needed userId, can get from @GetUser() { sub }: JwtPayLoad
-  async actionEvent(event, data) {
-    switch (event) {
-      case "create":
-      // return this.createEvent(data);
+  async actionEvent(userId: string, action: string, data?: any) {
+    switch (action) {
+      case "sync":
+        return this.syncUserEventsWithGoogleCalendar(userId);
+      case "createPersonalEvent":
+        if (!data) {
+          throw new BadRequestException("Missing data for createPersonalEvent");
+        }
+        return this.createPersonalEvent(userId, data);
+      case "createGroupEvent":
+        if (!data) {
+          throw new BadRequestException("Missing data for createGroupEvent");
+        }
+        return this.createGroupEvent(userId, data);
       case "update":
-      // return this.updateEvent(data.id, data);
+        if (!data || !data.eventId) {
+          throw new BadRequestException("Missing eventId for update");
+        }
+        return this.updateEvent(userId, data.eventId, data);
       case "delete":
-      // return this.deleteEvent(data.id);
+        if (!data || !data.eventId) {
+          throw new BadRequestException("Missing eventId for delete");
+        }
+        return this.deleteEvent(userId, data.eventId);
       default:
-        return null;
+        throw new BadRequestException("Invalid action");
     }
   }
 }

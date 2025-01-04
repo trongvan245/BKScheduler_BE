@@ -9,8 +9,11 @@ export class ChatbotController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  async handleMessage(@Body() request: ChatRequest): Promise<ChatResponse> {
-    return this.chatbotService.processRequest(request);
+  async handleMessage(
+    @Body() request: ChatRequest,
+    @Body() userId: string
+  ): Promise<ChatResponse> {
+    return this.chatbotService.processRequest(userId, request);
   }
 
   @Get()

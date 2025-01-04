@@ -7,16 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-enum EVENT_TYPE {
-  EVENT
-  FOCUS_TIME
-  OUT_OF_OFFICE
-  WORKING_LOCATION
-  TASK
-  APPOINTMENT_SCHEDULE
-  MEETING
-}
 model User {
   id                     String      @id @default(uuid()) @db.Uuid
   refresh_token          String?     @db.VarChar(255)
@@ -57,22 +47,21 @@ model UserGroup {
 }
 
 model Event {
-  id               String    @id @default(uuid())
+  id               String     @id @default(uuid())
   name             String?
   description      String?
   startTime        DateTime?
   endTime          DateTime?
   isRecurring      Boolean?
   isComplete       Boolean?
-  type             EVENT_TYPE @default(EVENT)
   reminderTime     Int?
   recurrentPattern String?
   priority         Int?
-  group_id         String?   @db.Uuid
+  group_id         String?    @db.Uuid
   summary          String?
-  group            Group?    @relation(fields: [group_id], references: [id], onDelete: Cascade)
-
-  ownerId          String?    @db.Uuid 
+  type             EVENT_TYPE @default(EVENT)
+  ownerId          String?    @db.Uuid
+  group            Group?     @relation(fields: [group_id], references: [id], onDelete: Cascade)
 }
 
 model Message {
@@ -83,4 +72,14 @@ model Message {
   response   String?
   textBot    String?
   user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum EVENT_TYPE {
+  EVENT
+  FOCUS_TIME
+  OUT_OF_OFFICE
+  WORKING_LOCATION
+  TASK
+  APPOINTMENT_SCHEDULE
+  MEETING
 }
