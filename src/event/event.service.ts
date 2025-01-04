@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { GoogleCalendarService } from "../google-calendar/calendar.service";
 import { CreateGroupEventDto, CreatePersonalEventDto, UpdateEventDto } from "./dto";
@@ -258,37 +258,30 @@ export class EventService {
     if (!findEvent) {
       throw new NotFoundException("Event not found.");
     }
+    if (findEvent.ownerId !== userId) throw new ForbiddenException("You are not the owner of this event.");
 
     const startDate = new Date(data.startTime);
 
     const endDate = new Date(data.endTime);
 
-    const calendarEvent = await this.googleCalendarService.updateEvent(eventId, userId, {
-      summary: data.summary,
-      description: data.description,
-      start: {
-        dateTime: startDate.toISOString(),
-        // timeZone: "Asia/Ho_Chi_Minh",
-      },
-      end: {
-        dateTime: endDate.toISOString(),
-        // timeZone: "Asia/Ho_Chi_Minh",
-      },
-    });
+    const updatedBody = {
+      summary: data.summary ? data.summary : findEvent.summary,
+      description: data.description ? data.description : findEvent.description,
+      start: data.startTime ? { dateTime: startDate.toISOString() } : undefined,
+      end: data.endTime ? { dateTime: endDate.toISOString() } : undefined,
+      isRecurrence: data.isRecurring ? data.isRecurring : undefined,
+      isComplete: data.isComplete ? data.isComplete : undefined,
+      type: data.type ? data.type : undefined,
+      priority: data.priority ? data.priority : undefined
+    };
+
+    const calendarEvent = await this.googleCalendarService.updateEvent(eventId, userId, updatedBody);
 
     const event = await this.prisma.event.update({
       where: {
         id: eventId,
       },
-      data: {
-        summary: data.summary,
-        description: data.description,
-        startTime: startDate,
-        endTime: endDate,
-        isComplete: data.isComplete,
-        type: data.type,
-        priority: data.priority,
-      },
+      data: updatedBody,
     });
 
     return event;
