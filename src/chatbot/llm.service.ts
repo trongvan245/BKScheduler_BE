@@ -2,18 +2,37 @@
 import { Injectable } from "@nestjs/common";
 import { MessageAnalysis, RequestType } from "./models/chatbot.model";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { MessageService } from "src/message/message.service";
+
 
 @Injectable()
 export class LLMService {
   private genAI: GoogleGenerativeAI;
   private model: any;
 
-  constructor() {
+  constructor(private readonly messageService: MessageService) {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     this.model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+
   }
 
   async analyzeMessage(userId: string, message: string): Promise<MessageAnalysis> {
+
+    // Lấy lịch sử tin nhắn
+    const messageHistory = await this.messageService.getMessageHistory(userId, 5);
+
+    // Chuyển đổi sang định dạng phù hợp cho prompt
+    const history = messageHistory.map((msg) => [
+      {
+        role: "user",
+        parts: [{ text: msg.textBot }], // Lấy nội dung tin nhắn từ người dùng
+      },
+      {
+        role: "model",
+        parts: [{ text: msg.response || "" }], // Lấy nội dung phản hồi từ chatbot, dùng "" nếu không có
+      },
+    ]).flat();
+
     const classificationPrompt = `
     Bạn là một trợ lý AI thông minh, có khả năng quản lý lịch trình và nhóm. Hãy phân tích tin nhắn sau:
 
@@ -38,6 +57,7 @@ export class LLMService {
   `;
 
     const classificationResult = await this.model.generateContent(classificationPrompt);
+    console.log(classificationResult);
     const classificationResponse = classificationResult.response;
     const classificationText = classificationResponse.text();
 
@@ -77,6 +97,9 @@ export class LLMService {
       domain = "event";
       const actionPrompt = `
       Bạn là một trợ lý quản lý lịch trình thông minh, có khả năng tích hợp với Google Calendar. Hãy phân tích tin nhắn sau:
+
+Đây là lịch sử hội thoại:
+  ${JSON.stringify(history)}
 
 Thời gian hiện tại: ${JSON.stringify(time)}
 
@@ -152,6 +175,9 @@ Các hành động (action) bạn có thể hiểu:
       const queryPrompt = `
       Bạn là một trợ lý quản lý lịch trình thông minh, có khả năng tích hợp với Google Calendar. Hãy phân tích tin nhắn sau:
 
+Đây là lịch sử hội thoại:
+  ${JSON.stringify(history)}
+
 Thời gian hiện tại: ${JSON.stringify(time)}
 
 Tin nhắn: '${cleanedMessage}'
@@ -225,6 +251,9 @@ Các hành động (action) bạn có thể hiểu:
       domain = "group";
       const groupPrompt = `
       Bạn là một trợ lý AI, có khả năng quản lý các nhóm người dùng. Hãy phân tích tin nhắn sau:
+
+Đây là lịch sử hội thoại:
+  ${JSON.stringify(history)}
 
 Thời gian hiện tại: ${JSON.stringify(time)}
 
