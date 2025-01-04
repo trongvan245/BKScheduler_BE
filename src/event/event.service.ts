@@ -89,6 +89,14 @@ export class EventService {
           // timeZone: "Asia/Ho_Chi_Minh",
         },
         attendees,
+        recurrence: data.isRecurring ? ["RRULE:FREQ=DAILY;COUNT=1"] : null,
+        status: data.isComplete ? "confirmed" : "tentative",
+        extendedProperties: {
+          private: {
+            type: data.type || "EVENT",
+            priority: data.priority ? data.priority.toString() : "1",
+          },
+        },
       },
       userId,
     );
@@ -258,30 +266,58 @@ export class EventService {
     if (!findEvent) {
       throw new NotFoundException("Event not found.");
     }
-    if (findEvent.ownerId !== userId) throw new ForbiddenException("You are not the owner of this event.");
 
-    const startDate = new Date(data.startTime);
+    const usersEmail = await this.prisma.userGroup.findMany({
+      where: {
+        group_id: findEvent.group_id,
+      },
+      select: {
+        User: {
+          select: {
+            email: true,
+            id: true,
+          },
+        },
+      },
+    });
 
-    const endDate = new Date(data.endTime);
+    const flattenedUsersEmail = usersEmail
+      .filter((user) => user.User.id !== userId)
+      .map((user) => ({ email: user.User.email }));
 
-    const updatedBody = {
-      summary: data.summary ? data.summary : findEvent.summary,
-      description: data.description ? data.description : findEvent.description,
-      start: data.startTime ? { dateTime: startDate.toISOString() } : undefined,
-      end: data.endTime ? { dateTime: endDate.toISOString() } : undefined,
-      isRecurrence: data.isRecurring ? data.isRecurring : undefined,
-      isComplete: data.isComplete ? data.isComplete : undefined,
-      type: data.type ? data.type : undefined,
-      priority: data.priority ? data.priority : undefined
-    };
+    const startDate = data.startTime ? new Date(data.startTime) : new Date(findEvent.startTime);
 
-    const calendarEvent = await this.googleCalendarService.updateEvent(eventId, userId, updatedBody);
+    const endDate = data.endTime ? new Date(data.endTime) : new Date(findEvent.endTime);
+
+    const calendarEvent = await this.googleCalendarService.updateEvent(eventId, userId, {
+      summary: data.summary,
+      description: data.description,
+      start: { dateTime: startDate.toISOString() },
+      end: { dateTime: endDate.toISOString() },
+      recurrence: data.isRecurring ? ["RRULE:FREQ=DAILY;COUNT=1"] : null,
+      attendees: flattenedUsersEmail,
+      status: data.isComplete ? "confirmed" : "tentative",
+      extendedProperties: {
+        private: {
+          type: data.type || findEvent.type,
+          priority: data.priority ? data.priority.toString() : findEvent.priority.toString(),
+        },
+      },
+    });
 
     const event = await this.prisma.event.update({
       where: {
         id: eventId,
       },
-      data: updatedBody,
+      data: {
+        summary: data.summary,
+        description: data.description,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        isComplete: data.isComplete,
+        type: data.type,
+        priority: data.priority,
+      },
     });
 
     return event;
