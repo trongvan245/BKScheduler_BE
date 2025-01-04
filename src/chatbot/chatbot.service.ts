@@ -18,12 +18,13 @@ export class ChatbotService {
 
   async processRequest(request: ChatRequest): Promise<ChatResponse> {
     try {
-
       const analyzeRequest = await this.analyzeRequest(request.userId, request.message);
       console.log(analyzeRequest);
       let serviceResponse;
       if (analyzeRequest.requestType !== "unknown") {
-        serviceResponse = await this.retryService.executeWithRetry(() => this.handleRequest(request.userId, analyzeRequest));
+        serviceResponse = await this.retryService.executeWithRetry(() =>
+          this.handleRequest(request.userId, analyzeRequest),
+        );
       }
 
       const response = await this.generateResponse(analyzeRequest, serviceResponse);
@@ -47,15 +48,14 @@ export class ChatbotService {
   }
 
   private async handleRequest(userId: string, request: MessageAnalysis): Promise<any> {
-    switch (request.requestType) {
-      case "query":
-        return this.handleRequestService.handleQuery(userId, request.action, request.data);
-      case "action":
-        return this.handleRequestService.handleAction(userId, request.action, request.data);
-      case "group":
-        return this.handleRequestService.handleGroup(userId, request.action, request.data);
-      default:
-        throw new Error("Unsupported request type");
+    if (request.domain === "event" && request.requestType === "action") {
+      return this.handleRequestService.handleAction(userId, request.action, request.data);
+    } else if (request.domain === "event" && request.requestType === "query") {
+      return this.handleRequestService.handleQuery(userId, request.action, request.data);
+    } else if (request.domain === "group") {
+      return this.handleRequestService.handleGroup(userId, request.action, request.data);
+    } else {
+      return null;
     }
   }
 
@@ -78,12 +78,12 @@ export class ChatbotService {
   private async generateResponse(messageAnalysis: MessageAnalysis, serviceResponse: any): Promise<ChatResponse> {
     const llmResponse = await this.llmService.generateResponse({
       analyzeResult: messageAnalysis,
-      serviceResponse
+      serviceResponse,
     });
 
     return {
       message: llmResponse,
-      status: "success"
+      status: "success",
     };
   }
 }
