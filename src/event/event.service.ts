@@ -71,56 +71,55 @@ export class EventService {
     users: { email: string; id: string }[] = [],
   ) {
     const startDate = new Date(data.startTime);
-
     const endDate = new Date(data.endTime);
-
+  
     const attendees = users.filter((user) => user.id !== userId).map((user) => ({ email: user.email }));
-
+  
     const calendarEvent = await this.googleCalendarService.createEvent(
       {
         summary: data.summary,
         description: data.description,
         start: {
           dateTime: startDate.toISOString(),
-          // timeZone: "Asia/Ho_Chi_Minh",
+          timeZone: "Asia/Ho_Chi_Minh", // Bỏ comment
         },
         end: {
           dateTime: endDate.toISOString(),
-          // timeZone: "Asia/Ho_Chi_Minh",
+          timeZone: "Asia/Ho_Chi_Minh", // Bỏ comment
         },
         attendees,
-        recurrence: data.isRecurring ? ["RRULE:FREQ=DAILY;COUNT=1"] : null,
-        status: data.isComplete ? "confirmed" : "tentative",
+        recurrence: data.isRecurring ? ["RRULE:FREQ=DAILY;COUNT=1"] : null, // Cần xử lý logic cho recurrence
+        status: "confirmed", // Xem xét lại logic isComplete và status
         extendedProperties: {
           private: {
             type: data.type || "EVENT",
-            priority: data.priority ? data.priority.toString() : "1",
+            priority: data.priority ? data.priority.toString() : "1", // Nên xem xét lại
           },
         },
       },
       userId,
     );
-
+  
     const webEvent = await this.prisma.event.create({
       data: {
         id: calendarEvent.id,
         summary: data.summary,
         description: data.description,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        isComplete: data.isComplete,
+        startTime: startDate, // Sử dụng Date object
+        endTime: endDate, // Sử dụng Date object
+        isComplete: data.isComplete, // Nên xem xét lại
         type: data.type,
         priority: data.priority,
-        group_id: groupID, // Include group_id in the create query
+        group_id: groupID,
         ownerId: userId,
       },
     });
-
+  
     return webEvent;
   }
 
   async createPersonalEvent(userId: string, data: CreatePersonalEventDto) {
-    const { indiGroupId } = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -128,7 +127,16 @@ export class EventService {
         indiGroupId: true,
       },
     });
-    const event = await this.createEvent(userId, indiGroupId, data);
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} not found.`);
+    }
+
+    if (!user.indiGroupId) {
+      throw new BadRequestException(`User with id ${userId} does not have indiGroupId.`);
+    }
+
+    const event = await this.createEvent(userId, user.indiGroupId, data);
     return event;
   }
 
@@ -323,28 +331,57 @@ export class EventService {
     return event;
   }
 
-  async queryEvent(event, data) {
-    switch (event) {
-      case "list":
+  async queryEvent(userId: string, action: string, data?: any) {
+    switch (action) {
+      case "listAll":
         return this.getAllEvents();
-      case "find":
-        return this.findEventById(data.id);
+      case "listUserEvents":
+        if (!data || !userId) {
+          throw new BadRequestException("Missing userId for listUserEvents");
+        }
+        return this.getAllUserEvents(userId);
+      case "listGroupEvents":
+        if (!data || !data.userId || !data.groupId) {
+          throw new BadRequestException("Missing userId or groupId for listGroupEvents");
+        }
+        return this.getAllGroupEvents(userId, data.groupId);
+      case "findById":
+        if (!data || !data.eventId) {
+          throw new BadRequestException("Missing eventId for findById");
+        }
+        return this.findEventById(data.eventId);
       default:
-        return null;
+        throw new BadRequestException("Invalid query action");
     }
   }
 
   //action needed userId, can get from @GetUser() { sub }: JwtPayLoad
-  async actionEvent(event, data) {
-    switch (event) {
-      case "create":
-      // return this.createEvent(data);
+  async actionEvent(userId: string, action: string, data?: any) {
+    switch (action) {
+      case "sync":
+        return this.syncUserEventsWithGoogleCalendar(userId);
+      case "createPersonalEvent":
+        if (!data) {
+          throw new BadRequestException("Missing data for createPersonalEvent");
+        }
+        return this.createPersonalEvent(userId, data);
+      case "createGroupEvent":
+        if (!data) {
+          throw new BadRequestException("Missing data for createGroupEvent");
+        }
+        return this.createGroupEvent(userId, data);
       case "update":
-      // return this.updateEvent(data.id, data);
+        if (!data || !data.eventId) {
+          throw new BadRequestException("Missing eventId for update");
+        }
+        return this.updateEvent(userId, data.eventId, data);
       case "delete":
-      // return this.deleteEvent(data.id);
+        if (!data || !data.eventId) {
+          throw new BadRequestException("Missing eventId for delete");
+        }
+        return this.deleteEvent(userId, data.eventId);
       default:
-        return null;
+        throw new BadRequestException("Invalid action");
     }
   }
 }

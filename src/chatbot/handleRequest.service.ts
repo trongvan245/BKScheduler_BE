@@ -1,15 +1,22 @@
-import { Injectable } from '@nestjs/common';
-import { EventService } from '../event/event.service';
+import { Injectable } from "@nestjs/common";
+import { EventService } from "../event/event.service";
+import { GroupService } from "src/group/group.service";
 
 @Injectable()
 export class HandleRequestService {
+  constructor(
+    private readonly eventService: EventService,
+    private readonly groupService: GroupService
+  ) {}
+  async handleQuery(userId: string, action: string, data: any): Promise<any> {
+    return this.eventService.queryEvent(userId, action, data);
+  }
 
-    constructor(private readonly eventService: EventService) {}
-    async handleQuery(event: any, data): Promise<any> {
-        return this.eventService.queryEvent(event, data);
-    }
+  async handleAction(userId: string, action: string, data: any): Promise<any> {
+    return this.eventService.actionEvent(userId, action, data);
+  }
 
-    async handleAction(event: any, data): Promise<any> {
-        return this.eventService.actionEvent(event, data);
-    }
+  async handleGroup(userId: string, action: string, data: any): Promise<any> {
+    return this.groupService.chatbotGroupService(userId, action, data);
+  }
 }

@@ -118,4 +118,16 @@ export class GoogleCalendarService {
       eventId,
     });
   }
+
+  // Get events by keywords
+  async getEventsByKeyword(userId: string, keyword: string): Promise<calendar_v3.Schema$Event[]> {
+    const calendar = await this.getGoogleCalendarClient(userId);
+
+    const res = await calendar.events.list({
+      calendarId: "primary",
+      q: keyword,
+    });
+
+    return res.data.items || [];
+  }
 }

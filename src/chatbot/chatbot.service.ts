@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { MessageHistory, ChatRequest, ChatResponse, MessageAnalysis} from './models/chatbot.model';
-import { MessageService } from '../message/message.service';
-import { LLMService } from './llm.service';
-import { RetryService } from './retry.service';
-import { HandleRequestService } from './handleRequest.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { MessageHistory, ChatRequest, ChatResponse, MessageAnalysis } from "./models/chatbot.model";
+import { MessageService } from "../message/message.service";
+import { LLMService } from "./llm.service";
+import { RetryService } from "./retry.service";
+import { HandleRequestService } from "./handleRequest.service";
 
 @Injectable()
 export class ChatbotService {
@@ -18,49 +18,43 @@ export class ChatbotService {
 
   async processRequest(request: ChatRequest): Promise<ChatResponse> {
     try {
-      const analyzeRequest =  await this.analyzeRequest(request.message);
-
+      const analyzeRequest = await this.analyzeRequest(request.userId, request.message);
+      console.log(analyzeRequest);
       let serviceResponse;
-      if (analyzeRequest.requestType !== 'unknown') {
-        serviceResponse = await this.retryService.executeWithRetry(() =>
-          this.handleRequest(analyzeRequest)
-        );
+      if (analyzeRequest.requestType !== "unknown") {
+        serviceResponse = await this.retryService.executeWithRetry(() => this.handleRequest(request.userId, analyzeRequest));
       }
 
-      const response = await this.generateResponse(
-        analyzeRequest,
-        serviceResponse,
-      );
+      const response = await this.generateResponse(analyzeRequest, serviceResponse);
 
       // Save message history
       await this.messageService.saveMessage({
         userId: request.userId,
         text: request.message,
-        textBot: analyzeRequest.message,
-        response: response.message
+        textBot: analyzeRequest.cleanedMessage,
+        response: response.message,
       });
 
       return response;
     } catch (error) {
       this.logger.error(`Error processing request: ${error.message}`);
       return {
-        message: 'I apologize, but I encountered an error processing your request. Please try again.',
-        status: 'error',
+        message: "I apologize, but I encountered an error processing your request. Please try again.",
+        status: "error",
       };
     }
   }
 
-  private async handleRequest(
-    request: MessageAnalysis,
-
-  ): Promise<any> {
+  private async handleRequest(userId: string, request: MessageAnalysis): Promise<any> {
     switch (request.requestType) {
-      case 'query':
-        return this.handleRequestService.handleQuery(request.event, request.data);
-      case 'action':
-        return this.handleRequestService.handleAction(request.event, request.data);
+      case "query":
+        return this.handleRequestService.handleQuery(userId, request.action, request.data);
+      case "action":
+        return this.handleRequestService.handleAction(userId, request.action, request.data);
+      case "group":
+        return this.handleRequestService.handleGroup(userId, request.action, request.data);
       default:
-        throw new Error('Unsupported request type');
+        throw new Error("Unsupported request type");
     }
   }
 
@@ -76,24 +70,19 @@ export class ChatbotService {
     return this.messageService.deleteMessage(userId, messageId);
   }
 
-  private async analyzeRequest(message: string): Promise<MessageAnalysis> {
-    return this.llmService.analyzeMessage(message);
+  private async analyzeRequest(userId: string, message: string): Promise<MessageAnalysis> {
+    return this.llmService.analyzeMessage(userId, message);
   }
 
-  private async generateResponse(
-    request: MessageAnalysis,
-    serviceResponse: any,
-  ): Promise<ChatResponse> {
+  private async generateResponse(messageAnalysis: MessageAnalysis, serviceResponse: any): Promise<ChatResponse> {
     const llmResponse = await this.llmService.generateResponse({
-      message: request.message,
-      requestType: request.requestType,
+      analyzeResult: messageAnalysis,
       serviceResponse
     });
 
     return {
       message: llmResponse,
-      data: serviceResponse,
-      status: 'success',
+      status: "success"
     };
   }
 }
