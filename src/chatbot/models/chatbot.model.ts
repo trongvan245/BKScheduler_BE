@@ -1,12 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export type RequestType = "query" | "action" | "group" | "unknown";
 
 export class ChatRequest {
   @ApiProperty({ description: 'ID của người dùng', example: 'user123' })
+  @IsString()
+  @IsNotEmpty()
   userId: string;
 
   @ApiProperty({ description: 'Nội dung tin nhắn', example: 'Xin chào' })
+  @IsString()
+  @IsNotEmpty()
   message: string;
 }
 

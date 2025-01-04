@@ -18,6 +18,7 @@ export class ChatbotService {
 
   async processRequest(request: ChatRequest): Promise<ChatResponse> {
     try {
+
       const analyzeRequest = await this.analyzeRequest(request.userId, request.message);
       console.log(analyzeRequest);
       let serviceResponse;
