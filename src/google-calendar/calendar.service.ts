@@ -17,7 +17,6 @@ export class GoogleCalendarService {
     if (!user || !user.calendar_refresh_token) {
       throw new UnauthorizedException("User does not have a valid refresh token.");
     }
-    console.log(user.calendar_refresh_token);
 
     // Set up the OAuth2 client
     const oauth2Client = new google.auth.OAuth2(
@@ -26,7 +25,6 @@ export class GoogleCalendarService {
       process.env.GOOGLE_REDIRECT_URI,
     );
 
-    console.log("add", user.calendar_refresh_token);
     oauth2Client.setCredentials({ refresh_token: user.calendar_refresh_token });
 
     // Return the Google Calendar instance
@@ -88,7 +86,6 @@ export class GoogleCalendarService {
     //add guest
     const calendar = await this.getGoogleCalendarClient(userId);
 
-    
     const res = await calendar.events.insert({
       calendarId: "primary",
       requestBody: eventData,

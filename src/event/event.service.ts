@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { GoogleCalendarService } from "../google-calendar/calendar.service";
 import { CreateGroupEventDto, CreatePersonalEventDto, UpdateEventDto } from "./dto";
@@ -82,13 +82,21 @@ export class EventService {
         description: data.description,
         start: {
           dateTime: startDate.toISOString(),
-          timeZone: "Asia/Ho_Chi_Minh",
+          // timeZone: "Asia/Ho_Chi_Minh",
         },
         end: {
           dateTime: endDate.toISOString(),
-          timeZone: "Asia/Ho_Chi_Minh",
+          // timeZone: "Asia/Ho_Chi_Minh",
         },
         attendees,
+        recurrence: data.isRecurring ? ["RRULE:FREQ=DAILY;COUNT=1"] : null,
+        status: data.isComplete ? "confirmed" : "tentative",
+        extendedProperties: {
+          private: {
+            type: data.type || "EVENT",
+            priority: data.priority ? data.priority.toString() : "1",
+          },
+        },
       },
       userId,
     );
@@ -259,20 +267,41 @@ export class EventService {
       throw new NotFoundException("Event not found.");
     }
 
-    const startDate = new Date(data.startTime);
+    const usersEmail = await this.prisma.userGroup.findMany({
+      where: {
+        group_id: findEvent.group_id,
+      },
+      select: {
+        User: {
+          select: {
+            email: true,
+            id: true,
+          },
+        },
+      },
+    });
 
-    const endDate = new Date(data.endTime);
+    const flattenedUsersEmail = usersEmail
+      .filter((user) => user.User.id !== userId)
+      .map((user) => ({ email: user.User.email }));
+
+    const startDate = data.startTime ? new Date(data.startTime) : new Date(findEvent.startTime);
+
+    const endDate = data.endTime ? new Date(data.endTime) : new Date(findEvent.endTime);
 
     const calendarEvent = await this.googleCalendarService.updateEvent(eventId, userId, {
       summary: data.summary,
       description: data.description,
-      start: {
-        dateTime: startDate.toISOString(),
-        timeZone: "Asia/Ho_Chi_Minh",
-      },
-      end: {
-        dateTime: endDate.toISOString(),
-        timeZone: "Asia/Ho_Chi_Minh",
+      start: { dateTime: startDate.toISOString() },
+      end: { dateTime: endDate.toISOString() },
+      recurrence: data.isRecurring ? ["RRULE:FREQ=DAILY;COUNT=1"] : null,
+      attendees: flattenedUsersEmail,
+      status: data.isComplete ? "confirmed" : "tentative",
+      extendedProperties: {
+        private: {
+          type: data.type || findEvent.type,
+          priority: data.priority ? data.priority.toString() : findEvent.priority.toString(),
+        },
       },
     });
 
@@ -283,8 +312,8 @@ export class EventService {
       data: {
         summary: data.summary,
         description: data.description,
-        startTime: startDate,
-        endTime: endDate,
+        startTime: data.startTime,
+        endTime: data.endTime,
         isComplete: data.isComplete,
         type: data.type,
         priority: data.priority,
