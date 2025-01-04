@@ -27,6 +27,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       ...options,
       access_type: "offline",
       prompt: "consent",
+      hd: "hcmut.edu.vn",
     };
   }
 
