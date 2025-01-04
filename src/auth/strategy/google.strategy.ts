@@ -18,6 +18,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       scope: ["email", "profile", "https://www.googleapis.com/auth/calendar"],
       accessType: "offline",
       prompt: "consent",
+      hd: "hcmut.edu.vn",
     });
   }
 
@@ -26,6 +27,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       ...options,
       access_type: "offline",
       prompt: "consent",
+      hd: "hcmut.edu.vn",
     };
   }
 

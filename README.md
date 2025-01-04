@@ -22,52 +22,80 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
+# BKSCHEDULER - Back-end
+## Team
+
+<div style="display: flex; justify-content: center;">
+
+<table width=100%>
+  <thead>
+    <tr>
+      <th><b>Name</b></th>
+      <th><b>Student ID</b></th>
+      <th><b>Role</b></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Thai Nguyen Gia Bao</td>
+      <td>2210265</td>
+      <td>BE developer</td>
+    </tr>
+    <tr>
+      <td>Nguyen Phuc Gia Khiem</td>
+      <td>2211573</td>
+      <td>BE developer</td>
+    </tr>
+    <tr>
+      <td>Le Van Anh Khoa</td>
+      <td>2211605</td>
+      <td>BE developer</td>
+    </tr>
+    <tr>
+      <td>Do Thanh Liem</td>
+      <td>2211834</td>
+      <td>FE developer</td>
+    </tr>
+    <tr>
+      <td>Le Hong Phuc (C)</td>
+      <td>2212615</td>
+      <td>FE developer</td>
+    </tr>
+    <tr>
+      <td>Vo Thanh Tam</td>
+      <td>2213046</td>
+      <td>FE developer</td>
+    </tr>
+    <tr>
+      <td>Bui Trong Van</td>
+      <td>2213915</td>
+      <td>BE developer</td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
+
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+The application is developed base on NestJS framework with the [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+
+## Perquisite
+
+To run this application, please guarantee that you already have installed NodeJS with the version is `v16` or higher and corresponding `npm` with the version is at least `9`.
 
 ## Installation
 
-```bash
-$ npm install
-```
+- Please run this command before running the app to ensure that you have all necessary packets.
+
+  ```bash
+  npm install
+  ```
+
+- Please set up your `.env` file with the keywords provided in the report.
 
 ## Running the app
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
 $ npm run start:dev
-
-# production mode
-$ npm run start:prod
 ```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
