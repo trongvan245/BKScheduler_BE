@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Body, Param, Query, UseGuards, Delete } from "@nestjs/common";
 import { ChatbotService } from "./chatbot.service";
-import { ChatRequest, ChatResponse, MessageHistory } from "./models/chatbot.model";
+import { ChatRequest, ChatResponse, MessageDto, MessageHistory } from "./models/chatbot.model";
 import { AuthGuard } from "@nestjs/passport";
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiBody, ApiQuery } from "@nestjs/swagger";
 import { GetUser, Public } from "src/common/decorators";
@@ -19,8 +19,9 @@ export class ChatbotController {
   @ApiResponse({ status: 201, description: "Trả về phản hồi từ chatbot", type: ChatResponse }) // Mô tả response thành công
   @ApiResponse({ status: 400, description: "Bad Request" }) // Mô tả lỗi 400
   @ApiResponse({ status: 401, description: "Unauthorized" }) // Mô tả lỗi 401
-  async handleMessage(@GetUser() user: JwtPayLoad, @Body() message: string): Promise<ChatResponse> {
-    const request: ChatRequest = { userId: user.sub, message }; // Tạo object request từ userId và message
+  async handleMessage(@GetUser() user: JwtPayLoad, @Body() message: MessageDto): Promise<ChatResponse> {
+    const request: ChatRequest = { userId: user.sub, message: message.message }; // Tạo object request từ userId và message
+    console.log(request);
     return this.chatbotService.processRequest(request);
   }
 
