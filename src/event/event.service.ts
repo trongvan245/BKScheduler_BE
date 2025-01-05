@@ -337,51 +337,50 @@ export class EventService {
         return this.getAllEvents();
       case "listUserEvents":
         if (!data || !userId) {
-          throw new BadRequestException("Missing userId for listUserEvents");
+          return { messageError: "Thiếu userId cho listUserEvents." };
         }
         return this.getAllUserEvents(userId);
       case "listGroupEvents":
-        if (!data || !data.userId || !data.groupId) {
-          throw new BadRequestException("Missing userId or groupId for listGroupEvents");
+        if (!data || !data.groupId) {
+          return { messageError: "Thiếu groupId cho listGroupEvents." };
         }
         return this.getAllGroupEvents(userId, data.groupId);
       case "findById":
         if (!data || !data.eventId) {
-          throw new BadRequestException("Missing eventId for findById");
+          return { messageError: "Thiếu eventId cho findById." };
         }
         return this.findEventById(data.eventId);
       default:
-        throw new BadRequestException("Invalid query action");
+        return { messageError: "Hành động truy vấn không hợp lệ." };
     }
   }
 
-  //action needed userId, can get from @GetUser() { sub }: JwtPayLoad
   async actionEvent(userId: string, action: string, data?: any) {
     switch (action) {
       case "sync":
         return this.syncUserEventsWithGoogleCalendar(userId);
       case "createPersonalEvent":
         if (!data) {
-          throw new BadRequestException("Missing data for createPersonalEvent");
+          return { messageError: "Thiếu dữ liệu cho việc tạo sự kiện cá nhân." };
         }
         return this.createPersonalEvent(userId, data);
       case "createGroupEvent":
         if (!data) {
-          throw new BadRequestException("Missing data for createGroupEvent");
+          return { messageError: "Thiếu dữ liệu cho việc tạo sự kiện nhóm." };
         }
         return this.createGroupEvent(userId, data);
       case "update":
         if (!data || !data.eventId) {
-          throw new BadRequestException("Missing eventId for update");
+          return { messageError: "Thiếu ID sự kiện để cập nhật." };
         }
         return this.updateEvent(userId, data.eventId, data);
       case "delete":
         if (!data || !data.eventId) {
-          throw new BadRequestException("Missing eventId for delete");
+          return { messageError: "Thiếu ID sự kiện để xóa." };
         }
         return this.deleteEvent(userId, data.eventId);
       default:
-        throw new BadRequestException("Invalid action");
+        return { messageError: "Hành động không hợp lệ." };
     }
   }
 }

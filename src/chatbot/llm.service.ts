@@ -85,7 +85,7 @@ Chỉ trả về đối tượng JSON, không thêm bất kỳ văn bản hay l�
   `;
 
     const classificationResult = await this.model.generateContent(classificationPrompt);
-    console.log(classificationResult);
+
     const classificationResponse = classificationResult.response;
     const classificationText = classificationResponse.text();
 

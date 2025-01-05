@@ -7,7 +7,6 @@ export class MessageService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getMessages(userId: string): Promise<MessageHistory[]> {
-    console.log(userId);
     return this.prisma.message.findMany({
       where: { userId: userId },
       orderBy: { createTime: "desc" },
@@ -18,7 +17,7 @@ export class MessageService {
     try {
       console.log("Saving message to database");
       // Implement save to database logic
-      await this.prisma.message.create({
+      const message = await this.prisma.message.create({
         data: {
           id: uuidv4(),
           user: { connect: { id: messageData.userId } },
@@ -28,6 +27,7 @@ export class MessageService {
         },
       });
       console.log("Message saved to database");
+      return message;
     } catch (error) {
       console.error("Failed to save message:", error);
     }
@@ -44,6 +44,13 @@ export class MessageService {
   async deleteMessage(userId, messageId) {
     return this.prisma.message.delete({
       where: { id: messageId, userId },
+    });
+  }
+
+  async updateMessage(messageId, message, messageData) {
+    return this.prisma.message.update({
+      where: { id: messageId, text: message },
+      data: {response: messageData.response, textBot: messageData.textBot},
     });
   }
 }
