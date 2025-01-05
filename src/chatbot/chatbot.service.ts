@@ -17,34 +17,62 @@ export class ChatbotService {
   ) {}
 
   async processRequest(request: ChatRequest): Promise<ChatResponse> {
+    const userId = request.userId;
+    const message = request.message;
+
+    // Lưu tin nhắn của người dùng vào cơ sở dữ liệu
+    const savedMessage = await this.messageService.saveMessage({ userId: userId, text: message });
+
+    let analyzeResult;
     try {
-      const analyzeRequest = await this.analyzeRequest(request.userId, request.message);
-      console.log(analyzeRequest);
-      let serviceResponse;
-      if (analyzeRequest.requestType !== "unknown") {
-        serviceResponse = await this.retryService.executeWithRetry(() =>
-          this.handleRequest(request.userId, analyzeRequest),
-        );
-      }
-
-      const response = await this.generateResponse(analyzeRequest, serviceResponse);
-
-      // Save message history
-      await this.messageService.saveMessage({
-        userId: request.userId,
-        text: request.message,
-        textBot: analyzeRequest.cleanedMessage,
-        response: response.message,
-      });
-
-      return response;
+      analyzeResult = await this.llmService.analyzeMessage(userId, message);
+      console.log("analyzeResult", analyzeResult);
     } catch (error) {
-      this.logger.error(`Error processing request: ${error.message}`);
+      this.logger.error(`Error analyzing message: ${error.message}`, error.stack);
       return {
-        message: "I apologize, but I encountered an error processing your request. Please try again.",
+        message: "Tôi xin lỗi, có lỗi xảy ra khi phân tích yêu cầu của bạn. Vui lòng thử lại sau.",
         status: "error",
       };
     }
+
+    if (analyzeResult.messageError) {
+      return {
+        message: analyzeResult.messageError,
+        status: "error",
+      };
+    }
+
+    let serviceResponse;
+    try {
+      if (analyzeResult.requestType !== "unknown") {
+        serviceResponse = await this.retryService.executeWithRetry(() => this.handleRequest(userId, analyzeResult));
+      } else {
+        serviceResponse = { messageError: "Tôi không hiểu yêu cầu của bạn." };
+      }
+    } catch (error) {
+      this.logger.error(`Error handling request: ${error.message}`, error.stack);
+      return {
+        message: "Đã xảy ra lỗi khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.",
+        status: "error",
+      };
+    }
+
+    if (serviceResponse && serviceResponse.messageError) {
+      return {
+        message: serviceResponse.messageError,
+        status: "error",
+      };
+    }
+
+    const response = await this.generateResponse(analyzeResult, serviceResponse);
+
+    // Cập nhật tin nhắn với kết quả phân tích và phản hồi
+    await this.messageService.updateMessage(savedMessage.id, message, {
+      response: response.message,
+      textBot: analyzeResult.cleanedMessage,
+    });
+
+    return response;
   }
 
   private async handleRequest(userId: string, request: MessageAnalysis): Promise<any> {

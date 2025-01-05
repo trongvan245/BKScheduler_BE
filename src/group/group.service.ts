@@ -186,22 +186,22 @@ export class GroupService {
     switch (action) {
       case "createGroup":
         if (!data || !data.name) {
-          throw new BadRequestException("Missing group name for createGroup");
+          return { messageError: "Thiếu tên nhóm khi tạo nhóm." };
         }
         return this.createGroup(userId, data);
       case "findGroupById":
         if (!data || !data.groupId) {
-          throw new BadRequestException("Missing groupId for findGroupById");
+          return { messageError: "Thiếu ID nhóm khi tìm nhóm theo ID." };
         }
         return this.findGroupById(data.groupId);
       case "addUserToGroup":
         if (!data || !data.email || !data.groupId) {
-          throw new BadRequestException("Missing email or groupId for addUserToGroup");
+          return { messageError: "Thiếu email người dùng hoặc ID nhóm khi thêm người dùng vào nhóm." };
         }
         return this.addUserToGroup(data.email, data.groupId);
       case "removeUserFromGroup":
         if (!data || !data.email || !data.groupId) {
-          throw new BadRequestException("Missing email or groupId for removeUserFromGroup");
+          return { messageError: "Thiếu email người dùng hoặc ID nhóm khi xóa người dùng khỏi nhóm." };
         }
         return this.removeUserFromGroup(data.email, data.groupId);
       case "findUserGroups":
@@ -210,21 +210,21 @@ export class GroupService {
         return this.getAllGroups();
       // case "listGroupMembers":
       //   if (!data || !data.groupId) {
-      //     throw new BadRequestException("Missing groupId for listGroupMembers");
+      //     return { messageError: "Thiếu ID nhóm khi lấy danh sách thành viên." };
       //   }
       //   return this.listGroupMembers(data.groupId);
       // case "updateGroupInfo":
       //   if (!data || !data.groupId || !data.groupInfo) {
-      //       throw new BadRequestException("Missing groupId or groupInfo for updateGroupInfo");
+      //     return { messageError: "Thiếu ID nhóm hoặc thông tin cập nhật khi cập nhật thông tin nhóm." };
       //   }
       //   return this.updateGroupInfo(data.groupId, data.groupInfo, userId);
       // case "deleteGroup":
-      //   if(!data || !data.groupId) {
-      //       throw new BadRequestException("Missing groupId for deleteGroup")
+      //   if (!data || !data.groupId) {
+      //     return { messageError: "Thiếu ID nhóm khi xóa nhóm." }
       //   }
       //   return this.deleteGroup(data.groupId, userId)
       default:
-        throw new BadRequestException("Invalid group action");
+        return { messageError: "Hành động không hợp lệ." };
     }
   }
 
