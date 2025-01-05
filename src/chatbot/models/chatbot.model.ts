@@ -36,10 +36,10 @@ export class MessageHistory {
   @ApiProperty({ description: 'Tin nhắn của người dùng', example: 'Xin chào' })
   text: string; // Đổi tên thành userMessage
 
-  @ApiProperty({ description: 'Phản hồi của chatbot', required: false, example: 'Chào bạn!' })
+  @ApiProperty({ description: 'Tin nhắn của người dùng được làm sạch', required: false, example: 'Xin chào!' })
   textBot?: string; // Đổi tên thành botResponse
 
-  @ApiProperty({ description: 'Thông tin phản hồi', example: null, required: false })
+  @ApiProperty({ description: 'Phản hồi của chatbot', example: 'Chào bạn!', required: false })
   response?: string; // Trường này có redundant với textBot không?
 
   @ApiProperty({ description: 'Thời gian tạo (ISO-8601)', example: '2023-12-28T15:32:51.609Z' })
