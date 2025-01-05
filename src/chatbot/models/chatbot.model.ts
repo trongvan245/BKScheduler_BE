@@ -3,6 +3,13 @@ import { IsString, IsNotEmpty } from 'class-validator';
 
 export type RequestType = "query" | "action" | "group" | "unknown";
 
+export class MessageDto {
+  @ApiProperty({ description: 'Nội dung tin nhắn', example: 'Xin chào' })
+  @IsString()
+  @IsNotEmpty()
+  message: string;
+}
+
 export class ChatRequest {
   @ApiProperty({ description: 'ID của người dùng', example: 'user123' })
   @IsString()
