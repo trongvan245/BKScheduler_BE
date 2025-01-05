@@ -15,7 +15,7 @@ export class ChatbotController {
 
   @Post()
   @ApiOperation({ summary: "Xử lý tin nhắn (Chat)" }) // Mô tả endpoint
-  @ApiBody({ type: String, description: "Request body chứa message" }) // Mô tả request body
+  @ApiBody({ type: MessageDto, description: "Request body chứa message" }) // Mô tả request body
   @ApiResponse({ status: 201, description: "Trả về phản hồi từ chatbot", type: ChatResponse }) // Mô tả response thành công
   @ApiResponse({ status: 400, description: "Bad Request" }) // Mô tả lỗi 400
   @ApiResponse({ status: 401, description: "Unauthorized" }) // Mô tả lỗi 401
