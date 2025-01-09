@@ -34,6 +34,9 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>("PORT") || 5000;
+
+  const gemini_api_key= configService.get<string>("GEMINI_API_KEY");
+  console.log(gemini_api_key);
   await app.listen(port);
 
   console.log(`Application is running on: ${await app.getUrl()}`);
