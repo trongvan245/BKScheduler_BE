@@ -34,7 +34,7 @@ export class ChatbotController {
     return this.chatbotService.getMessage(user.sub);
   }
 
-  @Post("delete") // Sử dụng method POST để đồng nhất với request body
+  @Delete() 
   @ApiOperation({ summary: "Xóa tin nhắn" })
   @ApiBody({
     schema: {
@@ -52,5 +52,15 @@ export class ChatbotController {
   @ApiResponse({ status: 404, description: "Not Found" })
   async deleteMessage(@GetUser() user: JwtPayLoad, @Body() messageId: string): Promise<any> {
     return this.chatbotService.deleteMessage(user.sub, messageId);
+  }
+
+  @Delete("all") 
+  @ApiOperation({ summary: "Xóa lịch sử trò chuyện" })
+  @ApiResponse({ status: 200, description: "Xóa tin nhắn thành công" })
+  @ApiResponse({ status: 400, description: "Bad Request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Not Found" })
+  async deleteMessageHistory(@GetUser() user: JwtPayLoad): Promise<any> {
+    return this.chatbotService.deleteMessageHistory(user.sub);
   }
 }

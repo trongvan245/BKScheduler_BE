@@ -47,6 +47,12 @@ export class MessageService {
     });
   }
 
+  async deleteMessageHistory(userId: string) {
+    return this.prisma.message.deleteMany({
+      where: { userId },
+    });
+  }
+
   async updateMessage(messageId, message, messageData) {
     return this.prisma.message.update({
       where: { id: messageId, text: message },

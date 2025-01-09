@@ -99,6 +99,10 @@ export class ChatbotService {
     return this.messageService.deleteMessage(userId, messageId);
   }
 
+  async deleteMessageHistory(userId: string): Promise<any> {
+    return this.messageService.deleteMessageHistory(userId);
+  }
+
   private async analyzeRequest(userId: string, message: string): Promise<MessageAnalysis> {
     return this.llmService.analyzeMessage(userId, message);
   }
