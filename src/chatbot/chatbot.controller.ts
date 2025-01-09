@@ -25,6 +25,27 @@ export class ChatbotController {
     return this.chatbotService.processRequest(request);
   }
 
+  @Post('test')
+  @ApiOperation({ summary: "Test LLM Service" })
+  @ApiBody({ type: MessageDto, description: "Request body chứa message" })
+  @ApiResponse({ status: 201, description: "Trả về phản hồi từ testLLM", type: ChatResponse })
+  @ApiResponse({ status: 400, description: "Bad Request" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async testLLMEndpoint(@GetUser() user: JwtPayLoad, @Body() message: MessageDto): Promise<ChatResponse> {
+    try {
+      const responseMessage = await this.chatbotService.testLLM(message.message);
+      return {
+        message: responseMessage,
+        status: "success",
+      };
+    } catch (error) {
+      return {
+        message: "Đã xảy ra lỗi khi thử nghiệm LLM. Vui lòng thử lại sau.",
+        status: "error",
+      };
+    }
+  }
+
   @Get()
   @ApiOperation({ summary: "Lấy lịch sử tin nhắn" })
   @ApiResponse({ status: 200, description: "Trả về lịch sử tin nhắn", type: [MessageHistory] })

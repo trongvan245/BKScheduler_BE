@@ -14,6 +14,12 @@ export class LLMService {
     this.model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
   }
 
+  async testLLM(message: string): Promise<string> {
+    const prompt = message;
+    const result = await this.model.generateContent(prompt);
+    return result.response.text().trim();
+  }
+
   async analyzeMessage(userId: string, message: string): Promise<MessageAnalysis> {
     // Lấy lịch sử tin nhắn
     const messageHistory = await this.messageService.getMessageHistory(userId, 5);

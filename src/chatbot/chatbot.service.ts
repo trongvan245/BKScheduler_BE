@@ -118,4 +118,8 @@ export class ChatbotService {
       status: "success",
     };
   }
+
+  async testLLM(message: string): Promise<string> {
+    return this.llmService.testLLM(message);
+  }
 }
