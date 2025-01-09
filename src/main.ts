@@ -27,6 +27,7 @@ async function bootstrap() {
     "http://localhost:5173", // Frontend service 1 (development)
     "http://localhost:3000", // Frontend service 2 (development)
     "http://localhost:4000", // Frontend service 3 (development)
+    "https://bkbotscheduler.vercel.app", // Frontend service 1 (production)
   ];
 
   app.enableCors({ origin: allowedOrigins, methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS", credentials: true });
