@@ -43,8 +43,8 @@ export class AuthController {
   }
 
   @Public()
-  @Get("google")
-  async googleOauth(@Query("code") code: string) {
+  @Get("google/")
+  async googleOauth(@Query("/code") code: string) {
     if (!code) {
       throw new ForbiddenException(AUTH_MESSAGES.AUTHORIZATION_CODE_REQUIRED);
     }
