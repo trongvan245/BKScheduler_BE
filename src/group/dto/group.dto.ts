@@ -53,22 +53,6 @@ export class GroupDto {
 
 export class AddUserToGroupDto {
   @ApiProperty({
-    description: "The ID of the group",
-    example: "6ec60152-4548-4684-858d-bc54bce1983e",
-  })
-  @IsNotEmpty()
-  @IsString()
-  groupId: string;
-
-  // @ApiProperty({
-  //   description: "The ID of the user",
-  //   example: "e9efd948-ba7c-4800-a5ad-992b1a743886",
-  // })
-  // @IsString()
-  // @IsOptional()
-  // userId: string;
-
-  @ApiProperty({
     description: "The email of the user",
     example: "van.bui240504@hcmut.edu.vn"
   })

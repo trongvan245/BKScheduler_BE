@@ -57,7 +57,7 @@ export class EventController {
 
   @ApiOperation({ summary: "Get all user events(currently no filter)" })
   @ApiOkResponse({ description: "Get all user events succesfully", type: GetMeOkResponseDto })
-  @Get("getme")
+  @Get("")
   async getAllUserEvents(@GetUser() { sub }: JwtPayLoad) {
     const res = await this.eventService.getAllUserEvents(sub);
     return { events: res };
@@ -70,8 +70,8 @@ export class EventController {
     return { events: res };
   }
 
-  @ApiOperation({ summary: "Get all events" })
-  @Get("getall")
+  @ApiOperation({ summary: "Get all events from all user - development only" })
+  @Get("dev")
   async getAllEvents() {
     const res = await this.eventService.getAllEvents();
     return { events: res };
