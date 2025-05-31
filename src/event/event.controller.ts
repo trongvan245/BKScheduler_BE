@@ -50,7 +50,7 @@ export class EventController {
   }
 
   @ApiOperation({ summary: "Create group event" })
-  @Post('group')
+  @Post("group")
   async createGrouplEvent(@GetUser() { sub }: JwtPayLoad, @Body() eventData: CreateGroupEventDto) {
     return this.eventService.createGroupEvent(sub, eventData);
   }

@@ -33,6 +33,7 @@ model Group {
   description String?
   numMember   Int?
   events      Event[]
+  notifications Notification[]
   User        User?
   userGroups  UserGroup[]
 }
@@ -62,6 +63,16 @@ model Event {
   type             EVENT_TYPE @default(EVENT)
   ownerId          String?    @db.Uuid
   group            Group?     @relation(fields: [group_id], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id          String   @id @default(uuid()) @db.Uuid
+  createTime  DateTime @default(now())
+  title       String?  @db.VarChar(255)
+  body        String?  @db.VarChar(255)
+  isRead      Boolean  @default(false)
+  groupId     String?  @db.Uuid
+  group       Group?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
 }
 
 model Message {

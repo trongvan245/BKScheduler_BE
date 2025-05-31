@@ -111,6 +111,15 @@ export class GroupService {
 
     if (!newUserGroup) throw new ForbiddenException(`Cannot add the user ${user.name} to the group ${groupId}`);
 
+    const notification = await this.prismaservice.notification.create({
+      data: {
+        title: `Thành viên mới: ${user.name}`,
+        body: `${user.name} đã tham gia nhóm ${group.name}`,
+        isRead: false,
+        groupId: groupId,
+      },
+    });
+
     await this.prismaservice.group.update({
       where: {
         id: groupId,
