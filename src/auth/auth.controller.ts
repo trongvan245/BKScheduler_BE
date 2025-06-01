@@ -8,7 +8,7 @@ import { GetUser, Public } from "src/common/decorators";
 import { JwtPayLoad } from "src/common/model";
 
 @ApiBearerAuth()
-@ApiTags("authenticate")
+@ApiTags("Authenticate")
 @Controller("auth")
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -86,7 +86,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: "Get User Info" })
-  @Get("me")
+  @Get("")
   async me(@GetUser() { sub }: JwtPayLoad) {
     const user = await this.authService.getUserInfo(sub);
     return { user };

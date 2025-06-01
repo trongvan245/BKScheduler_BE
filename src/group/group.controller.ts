@@ -18,8 +18,8 @@ import { GetUser, Public } from "src/common/decorators";
 import { JwtPayLoad } from "src/common/model";
 
 @ApiBearerAuth()
-@ApiTags("Group")
-@Controller("group")
+@ApiTags("Groups")
+@Controller("groups")
 export class GroupController {
   constructor(private groupservice: GroupService) {}
 

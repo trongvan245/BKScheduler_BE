@@ -8,7 +8,7 @@ import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swa
 import { GetMeOkResponseDto } from "./dto/response.dto";
 
 @ApiBearerAuth()
-@ApiTags("events")
+@ApiTags("Events")
 @Controller("events")
 export class EventController {
   constructor(private eventService: EventService) {}

@@ -6,8 +6,8 @@ import { JwtPayLoad } from "src/common/model";
 import { CreateNotificationDto } from "./dto";
 
 @ApiBearerAuth()
-@ApiTags("notification")
-@Controller("notification")
+@ApiTags("Notifications")
+@Controller("notifications")
 export class NotificationController {
   constructor(private notificationService: NotificationService) {}
 
