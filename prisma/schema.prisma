@@ -63,6 +63,8 @@ model Event {
   type             EVENT_TYPE @default(EVENT)
   ownerId          String?    @db.Uuid
   group            Group?     @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  notifiedUpcoming Boolean? @default(false)
+  notifiedStarted  Boolean? @default(false)
 }
 
 model Notification {

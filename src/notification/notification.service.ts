@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateNotificationDto } from "./dto";
+import { Cron } from "@nestjs/schedule";
 
 @Injectable()
 export class NotificationService {
@@ -41,6 +42,8 @@ export class NotificationService {
       },
       orderBy: { createTime: "desc" },
     });
+    
+    return notifications;
   }
 
   async devNotifications() {
@@ -48,4 +51,83 @@ export class NotificationService {
       orderBy: { createTime: "desc" },
     });
   }
+
+  @Cron('* * 2 * * *', {
+    name: 'handleCronCreateNotification'
+  }) // Every 2 minutes
+  async handleCronCreateNotification() {
+    console.log("Running cron job to check event notifications");
+
+    const now = new Date();
+    const tenMinutesFromNow = new Date(now.getTime() + 10 * 60 * 1000);
+    const oneMinuteAgo = new Date(now.getTime() - 60 * 1000);
+
+    // Get events that are about to start in 10 minutes (with 1 minute window to avoid missing events)
+    const upcomingEvents = await this.prisma.event.findMany({
+      where: {
+        startTime: {
+          gte: tenMinutesFromNow,
+          lt: new Date(tenMinutesFromNow.getTime() + 60 * 1000)
+        },
+        notifiedUpcoming: false, // Flag to avoid duplicate notifications
+      },
+      include: {
+        group: true,
+      }
+    });
+
+    // Get events that just started (within the last minute)
+    const justStartedEvents = await this.prisma.event.findMany({
+      where: {
+        startTime: {
+          gte: oneMinuteAgo,
+          lte: now
+        },
+        notifiedStarted: false, // Flag to avoid duplicate notifications
+      },
+      include: {
+        group: true,
+      }
+    });
+
+    // Create notifications for upcoming events
+    for (const event of upcomingEvents) {
+      await this.prisma.$transaction([
+        this.prisma.notification.create({
+          data: {
+            title: "Upcoming Event Reminder",
+            body: `Event "${event.name}" will start in about 10 minutes`,
+            isRead: false,
+            groupId: event.group_id,
+          },
+        }),
+        this.prisma.event.update({
+          where: { id: event.id },
+          data: { notifiedUpcoming: true },
+        }),
+      ]);
+      console.log(`Created notification for upcoming event: ${event.name}`);
+    }
+
+    // Create notifications for just started events
+    for (const event of justStartedEvents) {
+      await this.prisma.$transaction([
+        this.prisma.notification.create({
+          data: {
+            title: "Event Started",
+            body: `Event "${event.name}" has started now`,
+            isRead: false,
+            groupId: event.group_id,
+          },
+        }),
+        this.prisma.event.update({
+          where: { id: event.id },
+          data: { notifiedStarted: true },
+        }),
+      ]);
+      console.log(`Created notification for started event: ${event.name}`);
+    }
+  }
+
+
 }

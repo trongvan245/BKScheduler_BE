@@ -11,6 +11,7 @@ import { GoogleCalendarModule } from "./google-calendar/calendar.module";
 import { ChatbotModule } from "./chatbot/chatbot.module";
 import { GroupModule } from "./group/group.module";
 import { NotificationModule } from './notification/notification.module';
+import { ScheduleModule } from "@nestjs/schedule";
 @Module({
   imports: [
     AuthModule,
@@ -22,6 +23,7 @@ import { NotificationModule } from './notification/notification.module';
     ChatbotModule,
     GroupModule,
     NotificationModule,
+    ScheduleModule.forRoot({})
   ],
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: JwtGuard }, PrismaService],
