@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
-import { CreateNotificationDto } from "./dto";
+import { CreateNotificationDto, UpdateNotificationDto } from "./dto";
 import { Cron } from "@nestjs/schedule";
 
 @Injectable()
@@ -45,6 +45,20 @@ export class NotificationService {
     
     return notifications;
   }
+
+  async updateNotification(id: string, notification: UpdateNotificationDto) {
+    const { title, body, isRead, groupId } = notification;
+    return this.prisma.notification.update({
+      where: { id },
+      data: {
+        title,
+        body,
+        isRead: isRead || false,
+        groupId: groupId || null,
+      },
+    });
+  }
+
 
   async devNotifications() {
     return this.prisma.notification.findMany({

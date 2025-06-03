@@ -1,9 +1,9 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
 import { NotificationService } from "./notification.service";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { GetUser } from "src/common/decorators";
 import { JwtPayLoad } from "src/common/model";
-import { CreateNotificationDto } from "./dto";
+import { CreateNotificationDto, UpdateNotificationDto } from "./dto";
 
 @ApiBearerAuth()
 @ApiTags("Notifications")
@@ -22,6 +22,14 @@ export class NotificationController {
   @Get("")
   async getAllNotifications(@GetUser() { sub }: JwtPayLoad) {
     return this.notificationService.getAllNotifications(sub);
+  }
+
+  @Patch(":id")
+  async updateNotification(
+    @GetUser() { sub }: JwtPayLoad,
+    @Param('id') id: string,
+    @Body() notification: UpdateNotificationDto ) {
+    return this.notificationService.updateNotification(id, notification);
   }
 
   @Get("dev")
