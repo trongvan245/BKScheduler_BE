@@ -24,6 +24,11 @@ export class NotificationController {
     return this.notificationService.getAllNotifications(sub);
   }
 
+  @Get(":id")
+  async getNotificationById(@GetUser() { sub }: JwtPayLoad, @Param('id') id: string) {
+    return this.notificationService.getNotificationById(id);
+  } 
+
   @Patch(":id")
   async updateNotification(
     @GetUser() { sub }: JwtPayLoad,

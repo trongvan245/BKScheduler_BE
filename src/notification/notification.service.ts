@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateNotificationDto, UpdateNotificationDto } from "./dto";
 import { Cron } from "@nestjs/schedule";
@@ -17,6 +17,16 @@ export class NotificationService {
         groupId: groupId || null,
       },
     });
+  }
+
+  async getNotificationById(id: string) {
+    const notification = await this.prisma.notification.findUnique({
+      where: { id },
+    });
+    if (!notification) {
+      throw new NotFoundException("Notification not found");
+    }
+    return notification;
   }
 
   async getAllNotifications(user_id: string) {
