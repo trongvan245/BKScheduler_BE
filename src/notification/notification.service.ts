@@ -57,15 +57,26 @@ export class NotificationService {
   }
 
   async updateNotification(id: string, notification: UpdateNotificationDto) {
-    const { title, body, isRead, groupId } = notification;
+    // Find existing notification first
+    const existingNotification = await this.prisma.notification.findUnique({
+      where: { id }
+    });
+    
+    if (!existingNotification) {
+      throw new NotFoundException("Notification not found");
+    }
+    
+    // Build update data with only provided fields
+    const updateData: any = {};
+    if (notification.title !== undefined) updateData.title = notification.title;
+    if (notification.body !== undefined) updateData.body = notification.body;
+    if (notification.isRead !== undefined) updateData.isRead = notification.isRead;
+    if (notification.groupId !== undefined) updateData.groupId = notification.groupId || null;
+    
+    // Update with only the provided fields
     return this.prisma.notification.update({
       where: { id },
-      data: {
-        title,
-        body,
-        isRead: isRead || false,
-        groupId: groupId || null,
-      },
+      data: updateData
     });
   }
 

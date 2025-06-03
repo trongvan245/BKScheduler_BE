@@ -67,6 +67,33 @@ export class GroupService {
     return flattenedGroup;
   }
 
+  async getGroupMembers(groupId: string) {
+    const group = await this.prismaservice.group.findUnique({
+      where: { id: groupId },
+      include: {
+        userGroups: {
+          select: {
+            User: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!group) throw new NotFoundException(`The group with ID ${groupId} is not existed`);
+    const users = group.userGroups.map((userGroup) => userGroup.User);
+    const flattenedGroup = {
+      ...group,
+      users,
+    };
+    delete flattenedGroup.userGroups;
+    return flattenedGroup;
+  }
+
   async addUserToGroup(email: string, groupId: string) {
     const user = await this.prismaservice.user.findUnique({
       where: {

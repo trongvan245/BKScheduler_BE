@@ -29,6 +29,22 @@ export class GroupController {
     return await this.groupservice.createGroup(sub, data);
   }
 
+  @ApiOperation({ summary: "Get all users from a group" })
+  @ApiParam({ 
+    name: 'groupId', 
+    description: 'The ID of the group to get users from',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    type: String 
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Successfully retrieved users from the group'
+  })
+  @Get(":groupId/members")
+  async getGroupMembers(@Param("groupId") groupId: string) {
+    return await this.groupservice.getGroupMembers(groupId);
+  }
+  
   @ApiOperation({ summary: "Add a user to a group" })
   @ApiParam({ 
     name: 'groupId', 
