@@ -25,3 +25,30 @@ export class RefreshTokenDto {
   @IsNotEmpty()
   refreshToken: string;
 }
+
+
+export class GoogleMobileLoginDto {
+  @ApiProperty({
+    description: "The authorization code returned by Google",
+    example: "4/0AfJohXnbla_zWsDhCMp-qGKUoYZJp7..."
+  })
+  @IsString()
+  @IsNotEmpty()
+  code: string;
+
+  @ApiProperty({
+    description: "The code verifier used in the PKCE flow",
+    example: "rQw8j3DQIGNJUAWTXlrh4a9IgDlrRJTc5a6FMDu_"
+  })
+  @IsString()
+  @IsNotEmpty()
+  code_verifier: string;
+
+  @ApiProperty({
+    description: "The redirect URI used in the authorization request",
+    example: "com.myapp://oauth2redirect"
+  })
+  @IsString()
+  @IsNotEmpty()
+  redirect_uri: string;
+}

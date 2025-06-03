@@ -1,9 +1,9 @@
 import { Body, Controller, ForbiddenException, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { ApiOperation, ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiOperation, ApiTags, ApiBearerAuth, ApiBody } from "@nestjs/swagger";
 import { AUTH_MESSAGES } from "src/common/constants";
 import { GoogleAuthGuard } from "./guard";
-import { RefreshTokenDto } from "./dto";
+import { GoogleMobileLoginDto, RefreshTokenDto } from "./dto";
 import { GetUser, Public } from "src/common/decorators";
 import { JwtPayLoad } from "src/common/model";
 
@@ -50,6 +50,22 @@ export class AuthController {
     }
 
     const payload = await this.authService.verifyGoogleOauth(code);
+
+    return {
+      ...payload,
+    };
+  }
+
+  @ApiOperation({ summary: "Google OAuth login for mobile apps" })
+  @ApiBody({ type: GoogleMobileLoginDto })
+  @Public()
+  @Post("google/mobile")
+  async googleMobileLogin(@Body() { code, code_verifier, redirect_uri }: GoogleMobileLoginDto) {
+    if (!code || !code_verifier || !redirect_uri) {
+      throw new ForbiddenException("Missing required parameters");
+    }
+
+    const payload = await this.authService.verifyGoogleMobileOauth(code, code_verifier, redirect_uri);
 
     return {
       ...payload,

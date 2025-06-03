@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import axios from "axios";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
+import { google } from "googleapis";
 import { AUTH_MESSAGES } from "src/common/constants";
 import { JwtPayLoad } from "src/common/model";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -67,6 +68,88 @@ export class AuthService {
 
     return newUser;
   }
+
+  async verifyGoogleMobileOauth(code: string, codeVerifier: string, redirectUri: string) {
+  try {
+    // Create an OAuth2 client without client secret
+    const oauth2Client = new google.auth.OAuth2(
+      this.config.get("GOOGLE_CLIENT_ID"),
+      this.config.get("GOOGLE_CLIENT_SECRET"),
+      redirectUri
+    );
+
+    // Exchange the authorization code for tokens using code_verifier
+    const { tokens } = await oauth2Client.getToken({
+      code: code,
+      codeVerifier: codeVerifier
+    });
+
+    // Set the credentials
+    oauth2Client.setCredentials(tokens);
+
+    // Get the user info
+    const userInfoClient = google.oauth2('v2').userinfo;
+    const { data } = await userInfoClient.get({ auth: oauth2Client });
+
+    // Verify the email domain if necessary
+    if (!data.email.endsWith('@hcmut.edu.vn')) {
+      throw new ForbiddenException('Only @hcmut.edu.vn emails are allowed');
+    }
+
+    // Create or update user in your database
+    const user = await this.prisma.user.upsert({
+      where: { email: data.email },
+      update: {
+        name: data.name,
+        picture: data.picture,
+        refresh_token: tokens.refresh_token || undefined,
+        // other fields to update
+      },
+      create: {
+        email: data.email,
+        name: data.name,
+        picture: data.picture,
+        verified_email: data.verified_email,
+        refresh_token: tokens.refresh_token,
+        // other fields to create
+        indiGroup: {
+          create: {
+            name: "IndiGroup",
+            numMember: 1,
+            ownerId: undefined, // Will be updated after user creation
+          },
+        },
+      },
+    });
+
+    // If this is a new user, update the indiGroup with the owner ID
+    if (user.indiGroupId) {
+      await this.prisma.group.update({
+        where: { id: user.indiGroupId },
+        data: { ownerId: user.id },
+      });
+    }
+
+    // Generate your app's JWT tokens
+    const access_token = await this.signAccessToken(user.id, user.email);
+    const refresh_token = await this.signRefreshToken(user.id, user.email);
+
+    return {
+      msg: "Success",
+      access_token,
+      refresh_token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        picture: user.picture,
+      },
+    };
+  } catch (error) {
+    console.error('Error in verifyGoogleMobileOauth:', error);
+    throw new ForbiddenException('Failed to authenticate with Google');
+  }
+}
 
   // async verifyGoogleOneTap(credential: string) {
   //   try {
