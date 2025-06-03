@@ -10,8 +10,12 @@ export class LLMService {
   private model: any;
 
   constructor(private readonly messageService: MessageService) {
+  console.log("GEMINI_API_KEY from environment:", process.env.GEMINI_API_KEY);
+  console.log("GEMINI_API_KEY length:", process.env.GEMINI_API_KEY?.length || 0);
+  console.log("GEMINI_API_KEY first 5 chars:", process.env.GEMINI_API_KEY?.substring(0, 5) || "N/A");
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-pro" });
+    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-05-20" });
+
   }
 
   async testLLM(message: string): Promise<string> {
