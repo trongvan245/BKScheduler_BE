@@ -234,7 +234,7 @@ export class AuthService {
 
     const refresh_token = await this.jwtService.signAsync(tokenPayload, {
       secret: this.config.get<string>("REFRESH_TOKEN_SECRET"),
-      expiresIn: "1d",
+      expiresIn: "30d",
     });
 
     const res = await this.prisma.user.update({
@@ -256,7 +256,7 @@ export class AuthService {
 
     const access_token = await this.jwtService.signAsync(tokenPayload, {
       secret: this.config.get<string>("ACCESS_TOKEN_SECRET"),
-      expiresIn: "1h",
+      expiresIn: "1d",
     });
 
     return access_token;
